@@ -47,10 +47,20 @@
 
     <!-- Header -->
     <header class="w-full max-w-md mx-auto py-4 border-b border-zinc-700">
-        <h1 class="text-3xl md:text-4xl font-bold text-center tracking-wider">York Wordle</h1>
-        <h3 class="text-sm md:text-base font-medium text-center tracking-wider text-zinc-400">
-            Edited by Veer Bajaj
-        </h3>
+        <div class="flex justify-between items-start mb-2">
+            <button id="help-tab" class="text-zinc-400 hover:text-white transition-colors text-sm font-medium">
+                Help
+            </button>
+            <div class="text-center">
+                <h1 class="text-3xl md:text-4xl font-bold tracking-wider">York Wordle</h1>
+                <h3 class="text-sm md:text-base font-medium tracking-wider text-zinc-400">
+                    Edited by Veer Bajaj
+                </h3>
+            </div>
+            <button id="credits-tab" class="text-zinc-400 hover:text-white transition-colors text-sm font-medium">
+                Credits
+            </button>
+        </div>
     </header>
 
 
@@ -110,6 +120,80 @@
         </div>
     </div>
 
+    <!-- Help Modal (Hidden by default) -->
+    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50">
+        <div class="bg-zinc-800 rounded-lg shadow-xl p-6 text-center border border-zinc-600 w-11/12 max-w-md">
+            <h2 class="text-2xl font-bold mb-4 text-blue-400">📚 How to Play</h2>
+            <div class="text-left space-y-3 text-sm">
+                <p><strong>Objective:</strong> Guess the 5-letter word in 6 tries or less.</p>
+                <p><strong>How to play:</strong></p>
+                <ul class="list-disc list-inside space-y-1 ml-2">
+                    <li>Type letters using your keyboard or click the on-screen keys</li>
+                    <li>Press ENTER to submit your guess</li>
+                    <li>Press BACKSPACE to delete letters</li>
+                </ul>
+                <p><strong>Color meanings:</strong></p>
+                <div class="space-y-1 ml-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 bg-emerald-600 rounded"></div>
+                        <span>Letter is in the word and in the correct position</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 bg-amber-500 rounded"></div>
+                        <span>Letter is in the word but in the wrong position</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 bg-zinc-700 rounded"></div>
+                        <span>Letter is not in the word</span>
+                    </div>
+                </div>
+                <p class="text-xs text-zinc-400 mt-4">💡 <strong>Secret:</strong> Type "team5171" for a hint!</p>
+            </div>
+            <button onclick="document.getElementById('help-modal').classList.add('hidden')" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">
+                Got it!
+            </button>
+        </div>
+    </div>
+
+    <!-- Credits Modal (Hidden by default) -->
+    <div id="credits-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50">
+        <div class="bg-zinc-800 rounded-lg shadow-xl p-6 text-center border border-zinc-600 w-11/12 max-w-md">
+            <h2 class="text-2xl font-bold mb-4 text-purple-400">🎯 Credits</h2>
+            <div class="text-left space-y-3 text-sm">
+                <div>
+                    <p><strong>Developed by:</strong> Veer Bajaj</p>
+                    <p class="text-zinc-400">Custom implementation of the popular Wordle game</p>
+                </div>
+                <div>
+                    <p><strong>Original Wordle:</strong> Josh Wardle</p>
+                    <p class="text-zinc-400">The New York Times Company</p>
+                </div>
+                <div>
+                    <p><strong>Built with:</strong></p>
+                    <ul class="list-disc list-inside ml-2 text-zinc-400">
+                        <li>HTML5, CSS3, JavaScript (ES6+)</li>
+                        <li>Tailwind CSS for styling</li>
+                        <li>Custom animations and transitions</li>
+                    </ul>
+                </div>
+                <div>
+                    <p><strong>Features:</strong></p>
+                    <ul class="list-disc list-inside ml-2 text-zinc-400">
+                        <li>Daily word rotation</li>
+                        <li>Admin panel access</li>
+                        <li>Hint system</li>
+                        <li>Share functionality</li>
+                        <li>Responsive design</li>
+                    </ul>
+                </div>
+                <p class="text-xs text-zinc-500 text-center mt-4">Made with ❤️ for word game enthusiasts</p>
+            </div>
+            <button onclick="document.getElementById('credits-modal').classList.add('hidden')" class="mt-6 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">
+                Close
+            </button>
+        </div>
+    </div>
+
     <script type="module">
         import dictionary from './dictionary.js';
         import { ADMIN_CODE, HINT_CODE } from './admin.js';
@@ -142,6 +226,10 @@
             const modalTitle = document.getElementById('modal-title');
             const shareContent = document.getElementById('share-content');
             const shareButton = document.getElementById('share-button');
+            const helpTab = document.getElementById('help-tab');
+            const creditsTab = document.getElementById('credits-tab');
+            const helpModal = document.getElementById('help-modal');
+            const creditsModal = document.getElementById('credits-modal');
             
             // --- INITIALIZATION ---
             function initializeGame() {
@@ -231,6 +319,12 @@
             // --- EVENT HANDLING ---
             function setupEventListeners() {
                 document.addEventListener('keydown', handleKeyDown);
+                helpTab.addEventListener('click', () => {
+                    helpModal.classList.remove('hidden');
+                });
+                creditsTab.addEventListener('click', () => {
+                    creditsModal.classList.remove('hidden');
+                });
             }
             
             function handleKeyDown(e) {
