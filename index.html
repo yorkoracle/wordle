@@ -43,32 +43,7 @@
             100% { transform: scale(1); }
         }
 
-        /* Loading Animation */
-        .loading-dots {
-            display: flex;
-            gap: 8px;
-        }
-        .dot {
-            width: 12px;
-            height: 12px;
-            background-color: #10b981;
-            border-radius: 50%;
-            animation: dot-bounce 1.4s infinite ease-in-out both;
-        }
-        .dot:nth-child(1) { animation-delay: -0.32s; }
-        .dot:nth-child(2) { animation-delay: -0.16s; }
-        .dot:nth-child(3) { animation-delay: 0s; }
-
-        @keyframes dot-bounce {
-            0%, 80%, 100% {
-                transform: scale(0);
-                opacity: 0.5;
-            }
-            40% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
+        
     </style>
 </head>
 <body class="bg-zinc-900 text-white flex flex-col items-center justify-between min-h-screen p-2">
@@ -81,22 +56,10 @@
             <h3 class="text-lg font-medium tracking-wider text-zinc-400">Edited by Veer Bajaj</h3>
         </div>
         
-        <!-- Loading Animation -->
-        <div class="loading-dots mb-8">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-        </div>
-        
         <!-- Start Button (hidden initially) -->
         <button id="start-button" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-8 rounded-lg transition-all transform hover:scale-105 text-xl">
             Start Game
         </button>
-    </div>
-
-    <!-- Logo in corner -->
-    <div class="fixed top-4 left-4 z-10">
-        <img src="logo.png" alt="Logo" class="w-12 h-12 object-contain opacity-80 hover:opacity-100 transition-opacity">
     </div>
 
     <!-- Header -->
