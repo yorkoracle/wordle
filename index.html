@@ -129,6 +129,7 @@
             let keySequence = [];
             const ADMIN_CODE = 'veerbajajisadmin';
             const HINT_CODE = 'team5171';
+            let hintUsed = false;
 
             // --- DOM ELEMENTS ---
             const grid = document.getElementById('grid');
@@ -146,6 +147,7 @@
             // --- INITIALIZATION ---
             function initializeGame() {
                 secretWord = getWordOfTheDay();
+                hintUsed = false; // Reset hint usage for new game
                 createGrid();
                 createKeyboard();
                 setupEventListeners();
@@ -246,8 +248,13 @@
                     adminModal.classList.remove('hidden');
                     keySequence = []; // Reset sequence
                 } else if (sequence === HINT_CODE) {
-                    hintText.textContent = generateHint(secretWord);
-                    hintModal.classList.remove('hidden');
+                    if (hintUsed) {
+                        showToast("Hint already used this game!");
+                    } else {
+                        hintText.textContent = generateHint(secretWord);
+                        hintModal.classList.remove('hidden');
+                        hintUsed = true;
+                    }
                     keySequence = []; // Reset sequence
                 }
 
