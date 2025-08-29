@@ -113,9 +113,12 @@
             let isGameOver = false;
             let secretWord = '';
             
-            // --- ADMIN FEATURE ---
+            // --- CHEAT CODES ---
             let keySequence = [];
             const ADMIN_CODE = 'veerbajajisadmin';
+            const HINT_CODE = 'smartuser';
+            const SKIP_CODE = 'nextword';
+            const REVEAL_CODE = 'showme';
 
             // --- DOM ELEMENTS ---
             const grid = document.getElementById('grid');
@@ -207,14 +210,38 @@
             }
             
             function handleKeyDown(e) {
-                // Admin sequence check
+                // Cheat codes sequence check
                 keySequence.push(e.key);
-                if (keySequence.length > ADMIN_CODE.length) {
+                const maxLength = Math.max(ADMIN_CODE.length, HINT_CODE.length, SKIP_CODE.length, REVEAL_CODE.length);
+                if (keySequence.length > maxLength) {
                     keySequence.shift();
                 }
-                if (keySequence.join('') === ADMIN_CODE) {
+                
+                const currentSequence = keySequence.join('');
+                
+                // Admin code - show secret word
+                if (currentSequence === ADMIN_CODE) {
                     secretWordDisplay.textContent = secretWord;
                     adminModal.classList.remove('hidden');
+                    return;
+                }
+                
+                // Hint code - show one correct letter
+                if (currentSequence === HINT_CODE && !isGameOver) {
+                    giveHint();
+                    return;
+                }
+                
+                // Skip code - move to next word
+                if (currentSequence === SKIP_CODE && !isGameOver) {
+                    skipToNextWord();
+                    return;
+                }
+                
+                // Reveal code - show all correct letters in current position
+                if (currentSequence === REVEAL_CODE && !isGameOver) {
+                    revealCurrentLetters();
+                    return;
                 }
 
                 if (isGameOver) return;
@@ -502,6 +529,75 @@
                 }
             `;
             document.head.appendChild(style);
+
+            // --- CHEAT CODE FUNCTIONS ---
+            function giveHint() {
+                if (currentTile === 0) {
+                    // Give first letter if no letters entered
+                    addChar(secretWord[0]);
+                    showToast("Hint: First letter revealed!");
+                } else {
+                    // Show a random unguessed letter
+                    const unguessedLetters = [];
+                    for (let i = currentTile; i < 5; i++) {
+                        unguessedLetters.push({letter: secretWord[i], position: i});
+                    }
+                    if (unguessedLetters.length > 0) {
+                        const randomHint = unguessedLetters[Math.floor(Math.random() * unguessedLetters.length)];
+                        showToast(`Hint: Position ${randomHint.position + 1} is "${randomHint.letter}"`);
+                    }
+                }
+            }
+            
+            function skipToNextWord() {
+                // Get next word in sequence
+                const startDate = new Date('2025-08-29T00:00:00Z');
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const diff = tomorrow - startDate;
+                const oneDay = 1000 * 60 * 60 * 24;
+                const dayIndex = Math.floor(diff / oneDay);
+                const wordIndex = dayIndex % DAILY_WORDS.length;
+                
+                secretWord = DAILY_WORDS[wordIndex];
+                showToast("Skipped to tomorrow's word!");
+                
+                // Reset game state
+                guesses = Array(6).fill(null).map(() => Array(5).fill({ char: '', state: 'empty' }));
+                currentRow = 0;
+                currentTile = 0;
+                isGameOver = false;
+                updateGrid();
+                
+                // Reset keyboard colors
+                const keys = document.querySelectorAll('[id^="key-"]');
+                keys.forEach(key => {
+                    key.classList.remove('bg-emerald-600', 'bg-amber-500', 'bg-zinc-800');
+                    key.classList.add('bg-zinc-600');
+                    key.dataset.state = '';
+                });
+            }
+            
+            function revealCurrentLetters() {
+                if (currentRow === 0) {
+                    showToast("Complete at least one guess first!");
+                    return;
+                }
+                
+                // Analyze previous guesses and show pattern
+                let pattern = "";
+                for (let i = 0; i < 5; i++) {
+                    const lastGuess = guesses[currentRow - 1][i];
+                    if (lastGuess.state === 'correct') {
+                        pattern += lastGuess.char;
+                    } else if (lastGuess.state === 'present') {
+                        pattern += "🟨";
+                    } else {
+                        pattern += "_";
+                    }
+                }
+                showToast(`Pattern: ${pattern}`, 3000);
+            }
 
             // --- START THE GAME ---
             initializeGame();
