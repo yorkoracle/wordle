@@ -42,9 +42,57 @@
             50% { transform: scale(1.15); }
             100% { transform: scale(1); }
         }
+
+        /* Loading Animation */
+        .loading-dots {
+            display: flex;
+            gap: 8px;
+        }
+        .dot {
+            width: 12px;
+            height: 12px;
+            background-color: #10b981;
+            border-radius: 50%;
+            animation: dot-bounce 1.4s infinite ease-in-out both;
+        }
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        .dot:nth-child(3) { animation-delay: 0s; }
+
+        @keyframes dot-bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body class="bg-zinc-900 text-white flex flex-col items-center justify-between min-h-screen p-2">
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="fixed inset-0 bg-zinc-900 flex flex-col items-center justify-center z-50">
+        <div class="text-center mb-8">
+            <img src="logo.png" alt="Logo" class="w-24 h-24 object-contain mx-auto mb-6 animate-pulse">
+            <h1 class="text-5xl font-bold tracking-wider mb-2">York Wordle</h1>
+            <h3 class="text-lg font-medium tracking-wider text-zinc-400">Edited by Veer Bajaj</h3>
+        </div>
+        
+        <!-- Loading Animation -->
+        <div class="loading-dots mb-8">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+        
+        <!-- Start Button (hidden initially) -->
+        <button id="start-button" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-8 rounded-lg transition-all transform hover:scale-105 text-xl">
+            Start Game
+        </button>
+    </div>
 
     <!-- Logo in corner -->
     <div class="fixed top-4 left-4 z-10">
@@ -52,7 +100,7 @@
     </div>
 
     <!-- Header -->
-    <header class="w-full max-w-md mx-auto py-4 border-b border-zinc-700">
+    <header class="w-full max-w-md mx-auto py-4 border-b border-zinc-700"></header>
         <div class="flex justify-between items-start mb-2">
             <button id="help-tab" class="text-zinc-400 hover:text-white transition-colors text-sm font-medium">
                 Help
@@ -197,6 +245,25 @@
         import { ADMIN_CODE, HINT_CODE } from './admin.js';
 
         document.addEventListener('DOMContentLoaded', () => {
+            // --- LOADING SCREEN LOGIC ---
+            const loadingScreen = document.getElementById('loading-screen');
+            const startButton = document.getElementById('start-button');
+            
+            // Show start button after loading animation
+            setTimeout(() => {
+                startButton.classList.remove('hidden');
+                startButton.classList.add('animate-pulse');
+            }, 2000);
+            
+            // Start game when button is clicked
+            startButton.addEventListener('click', () => {
+                loadingScreen.style.transition = 'opacity 0.5s ease-out';
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loadingScreen.remove();
+                }, 500);
+            });
+
             // --- WORD LISTS ---
             const VALID_WORDS = dictionary;
             const DAILY_WORDS = dictionary.map(word => word.toUpperCase());
