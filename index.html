@@ -112,6 +112,7 @@
 
     <script type="module">
         import dictionary from './dictionary.js';
+        import { ADMIN_CODE, HINT_CODE } from './admin.js';
 
         document.addEventListener('DOMContentLoaded', () => {
             // --- WORD LISTS ---
@@ -127,8 +128,6 @@
             
             // --- ADMIN FEATURE ---
             let keySequence = [];
-            const ADMIN_CODE = 'veerbajajisadmin';
-            const HINT_CODE = 'team5171';
             let hintUsed = false;
 
             // --- DOM ELEMENTS ---
