@@ -81,6 +81,18 @@
         </div>
     </div>
 
+    <!-- Hint Modal (Hidden by default) -->
+    <div id="hint-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50">
+        <div class="bg-zinc-800 rounded-lg shadow-xl p-8 text-center border border-zinc-600 w-11/12 max-w-md">
+            <h2 class="text-2xl font-bold mb-4 text-blue-400">💡 Smart User Hint</h2>
+            <p class="text-lg mb-4">Here's a hint for today's word:</p>
+            <p id="hint-text" class="text-xl font-bold text-emerald-400 tracking-wide my-4 bg-zinc-900 py-3 px-4 rounded-md"></p>
+            <button onclick="document.getElementById('hint-modal').classList.add('hidden')" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">
+                Got it!
+            </button>
+        </div>
+    </div>
+
     <!-- Game Over Modal (Hidden by default) -->
     <div id="game-over-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50">
         <div class="bg-zinc-800 rounded-lg shadow-xl p-6 text-center border border-zinc-600 w-11/12 max-w-sm">
@@ -116,6 +128,7 @@
             // --- ADMIN FEATURE ---
             let keySequence = [];
             const ADMIN_CODE = 'veerbajajisadmin';
+            const HINT_CODE = 'team5171';
 
             // --- DOM ELEMENTS ---
             const grid = document.getElementById('grid');
@@ -123,6 +136,8 @@
             const toastContainer = document.getElementById('toast-container');
             const adminModal = document.getElementById('admin-modal');
             const secretWordDisplay = document.getElementById('secret-word-display');
+            const hintModal = document.getElementById('hint-modal');
+            const hintText = document.getElementById('hint-text');
             const gameOverModal = document.getElementById('game-over-modal');
             const modalTitle = document.getElementById('modal-title');
             const shareContent = document.getElementById('share-content');
@@ -150,6 +165,17 @@
                 const dayIndex = Math.floor(diff / oneDay);
                 const wordIndex = dayIndex % DAILY_WORDS.length;
                 return DAILY_WORDS[wordIndex];
+            }
+            
+            function generateHint(word) {
+                const hints = [
+                    `The word starts with "${word[0].toUpperCase()}" and ends with "${word[word.length - 1].toUpperCase()}"`,
+                    `The word has ${word.length} letters`,
+                    `The second letter is "${word[1].toUpperCase()}"`,
+                    `The word contains the letters: ${word.split('').slice(0, 3).map(l => l.toUpperCase()).join(', ')}...`,
+                    `Letters 2-4 are: ${word.slice(1, 4).toUpperCase()}`
+                ];
+                return hints[Math.floor(Math.random() * hints.length)];
             }
             
             // --- UI CREATION ---
@@ -207,14 +233,22 @@
             }
             
             function handleKeyDown(e) {
-                // Admin sequence check
+                // Cheat code sequence check
                 keySequence.push(e.key);
-                if (keySequence.length > ADMIN_CODE.length) {
+                const maxLength = Math.max(ADMIN_CODE.length, HINT_CODE.length);
+                if (keySequence.length > maxLength) {
                     keySequence.shift();
                 }
-                if (keySequence.join('') === ADMIN_CODE) {
+                
+                const sequence = keySequence.join('');
+                if (sequence === ADMIN_CODE) {
                     secretWordDisplay.textContent = secretWord;
                     adminModal.classList.remove('hidden');
+                    keySequence = []; // Reset sequence
+                } else if (sequence === HINT_CODE) {
+                    hintText.textContent = generateHint(secretWord);
+                    hintModal.classList.remove('hidden');
+                    keySequence = []; // Reset sequence
                 }
 
                 if (isGameOver) return;
