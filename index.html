@@ -32,7 +32,7 @@
         .back {
             transform: rotateX(180deg);
         }
-        
+
         /* Custom Key Animation */
         .key-pop {
             animation: key-pop-animation 0.1s ease-out;
@@ -43,7 +43,7 @@
             100% { transform: scale(1); }
         }
 
-        
+
     </style>
 </head>
 <body class="bg-zinc-900 text-white flex flex-col items-center justify-between min-h-screen p-2">
@@ -55,7 +55,7 @@
             <h1 class="text-5xl font-bold tracking-wider mb-2">York Wordle</h1>
             <h3 class="text-lg font-medium tracking-wider text-zinc-400">Edited by Veer Bajaj</h3>
         </div>
-        
+
         <!-- Start Button (hidden initially) -->
         <button id="start-button" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-8 rounded-lg transition-all transform hover:scale-105 text-xl">
             Start Game
@@ -95,7 +95,7 @@
 
     <!-- Message Toasts -->
     <div id="toast-container" class="fixed top-16 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"></div>
-    
+
     <!-- Admin Modal (Hidden by default) -->
     <div id="admin-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50">
         <div class="bg-zinc-800 rounded-lg shadow-xl p-8 text-center border border-zinc-600">
@@ -194,7 +194,7 @@
                     </ul>
                 </div>
                 <div>
-                    
+
                 <p class="text-xs text-zinc-500 text-center mt-4">Made with ❤️ for word game enthusiasts</p>
             </div>
             <button onclick="document.getElementById('credits-modal').classList.add('hidden')" class="mt-6 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">
@@ -211,13 +211,13 @@
             // --- LOADING SCREEN LOGIC ---
             const loadingScreen = document.getElementById('loading-screen');
             const startButton = document.getElementById('start-button');
-            
+
             // Show start button after loading animation
             setTimeout(() => {
                 startButton.classList.remove('hidden');
                 startButton.classList.add('animate-pulse');
             }, 2000);
-            
+
             // Start game when button is clicked
             startButton.addEventListener('click', () => {
                 loadingScreen.style.transition = 'opacity 0.5s ease-out';
@@ -230,14 +230,14 @@
             // --- WORD LISTS ---
             const VALID_WORDS = dictionary;
             const DAILY_WORDS = dictionary.map(word => word.toUpperCase());
-            
+
             // --- GAME STATE ---
             let guesses = Array(6).fill(null).map(() => Array(5).fill({ char: '', state: 'empty' }));
             let currentRow = 0;
             let currentTile = 0;
             let isGameOver = false;
             let secretWord = '';
-            
+
             // --- ADMIN FEATURE ---
             let keySequence = [];
             let hintUsed = false;
@@ -258,7 +258,7 @@
             const creditsTab = document.getElementById('credits-tab');
             const helpModal = document.getElementById('help-modal');
             const creditsModal = document.getElementById('credits-modal');
-            
+
             // --- INITIALIZATION ---
             function initializeGame() {
                 secretWord = getWordOfTheDay();
@@ -267,11 +267,11 @@
                 createKeyboard();
                 setupEventListeners();
             }
-            
+
             function getWordOfTheDay() {
                 const startDate = new Date('2025-08-29T00:00:00Z');
                 const now = new Date();
-                
+
                 // If it's before the start date, just return the first word.
                 if (now < startDate) {
                     return DAILY_WORDS[0];
@@ -283,7 +283,7 @@
                 const wordIndex = dayIndex % DAILY_WORDS.length;
                 return DAILY_WORDS[wordIndex];
             }
-            
+
             function generateHint(word) {
                 const hints = [
                     `The word starts with "${word[0].toUpperCase()}" and ends with "${word[word.length - 1].toUpperCase()}"`,
@@ -294,7 +294,7 @@
                 ];
                 return hints[Math.floor(Math.random() * hints.length)];
             }
-            
+
             // --- UI CREATION ---
             function createGrid() {
                 for (let r = 0; r < 6; r++) {
@@ -303,10 +303,10 @@
                         tileContainer.classList.add('tile', 'relative', 'w-full', 'h-full');
                         tileContainer.dataset.row = r;
                         tileContainer.dataset.col = c;
-                        
+
                         const front = document.createElement('div');
                         front.classList.add('front', 'absolute', 'w-full', 'h-full', 'border-2', 'border-zinc-700', 'flex', 'items-center', 'justify-center', 'text-4xl', 'font-bold', 'transition-all', 'duration-100');
-                        
+
                         const back = document.createElement('div');
                         back.classList.add('back', 'absolute', 'w-full', 'h-full', 'border-2', 'border-zinc-700', 'flex', 'items-center', 'justify-center', 'text-4xl', 'font-bold');
 
@@ -354,7 +354,7 @@
                     creditsModal.classList.remove('hidden');
                 });
             }
-            
+
             function handleKeyDown(e) {
                 // Cheat code sequence check
                 keySequence.push(e.key);
@@ -362,7 +362,7 @@
                 if (keySequence.length > maxLength) {
                     keySequence.shift();
                 }
-                
+
                 const sequence = keySequence.join('');
                 if (sequence === ADMIN_CODE) {
                     secretWordDisplay.textContent = secretWord;
@@ -392,7 +392,7 @@
 
             function handleKeyPress(key) {
                 if (isGameOver) return;
-                
+
                 const keyElement = document.getElementById(`key-${key}`);
                 if(keyElement) {
                     keyElement.classList.add('key-pop');
@@ -407,14 +407,14 @@
                     addChar(key);
                 }
             }
-            
+
             // --- GAME LOGIC ---
             function addChar(char) {
                 guesses[currentRow][currentTile] = { char, state: 'tbd' };
                 updateGrid();
                 currentTile++;
             }
-            
+
             function deleteChar() {
                 if (currentTile > 0) {
                     currentTile--;
@@ -422,7 +422,7 @@
                     updateGrid();
                 }
             }
-            
+
             function submitGuess() {
                 if (currentTile < 5) {
                     showToast("Not enough letters");
@@ -431,16 +431,16 @@
                 }
 
                 const guessWord = guesses[currentRow].map(tile => tile.char).join('');
-                
+
                 if (!VALID_WORDS.includes(guessWord.toLowerCase())) {
                     showToast("Not in word list");
                     shakeRow(currentRow);
                     return;
                 }
-                
+
                 evaluateGuess(guessWord);
             }
-            
+
             function evaluateGuess(guessWord) {
                 const secretWordLetters = secretWord.split('');
                 const evaluation = Array(5).fill('absent');
@@ -466,10 +466,10 @@
                         letterCounts[guessWord[i]]--;
                     }
                 }
-                
+
                 flipAndColor(evaluation);
             }
-            
+
             async function flipAndColor(evaluation) {
                 const guess = guesses[currentRow];
                 for (let i = 0; i < 5; i++) {
@@ -483,7 +483,7 @@
 
                 checkGameOver();
             }
-            
+
             function getDayNumber() {
                 const startDate = new Date('2025-08-29T00:00:00Z');
                 const now = new Date();
@@ -508,7 +508,7 @@
                     present: '🟨',
                     absent: '⬛'
                 };
-                
+
                 for (let i = 0; i <= currentRow; i++) {
                     for (let j = 0; j < 5; j++) {
                         text += emojiMap[guesses[i][j].state] || '⬛';
@@ -569,7 +569,7 @@
                     }
                 }
             }
-            
+
             function updateTile(tileElement, tileData) {
                 const front = tileElement.querySelector('.front');
                 const back = tileElement.querySelector('.back');
@@ -590,7 +590,7 @@
                     present: 'bg-amber-500 border-amber-500',
                     absent: 'bg-zinc-700 border-zinc-700',
                 };
-                
+
                 if (stateColors[tileData.state]) {
                     back.classList.add(...stateColors[tileData.state].split(' '));
                 }
@@ -602,7 +602,7 @@
 
                 const currentState = keyElement.dataset.state;
                 const statePrecedence = { correct: 2, present: 1, absent: 0 };
-                
+
                 if (!currentState || statePrecedence[state] > statePrecedence[currentState]) {
                     keyElement.classList.remove('bg-zinc-600', 'bg-emerald-600', 'bg-amber-500', 'bg-zinc-800');
                     const keyColors = {
@@ -614,7 +614,7 @@
                     keyElement.dataset.state = state;
                 }
             }
-            
+
             function getTileElement(row, col) {
                 return grid.querySelector(`[data-row='${row}'][data-col='${col}']`);
             }
@@ -638,7 +638,7 @@
                     tile.addEventListener('animationend', () => tile.style.animation = '', { once: true });
                 });
             }
-            
+
             function danceRow(row) {
                 const rowTiles = grid.querySelectorAll(`[data-row='${row}']`);
                 rowTiles.forEach((tile, index) => {
@@ -671,4 +671,3 @@
     </script>
 </body>
 </html>
-
