@@ -356,27 +356,29 @@
             }
 
             function handleKeyDown(e) {
-                // Cheat code sequence check
-                keySequence.push(e.key);
-                const maxLength = Math.max(ADMIN_CODE.length, HINT_CODE.length);
-                if (keySequence.length > maxLength) {
-                    keySequence.shift();
-                }
-
-                const sequence = keySequence.join('');
-                if (sequence === ADMIN_CODE) {
-                    secretWordDisplay.textContent = secretWord;
-                    adminModal.classList.remove('hidden');
-                    keySequence = []; // Reset sequence
-                } else if (sequence === HINT_CODE) {
-                    if (hintUsed) {
-                        showToast("Hint already used this game!");
-                    } else {
-                        hintText.textContent = generateHint(secretWord);
-                        hintModal.classList.remove('hidden');
-                        hintUsed = true;
+                // Cheat code sequence check - only track letter/number keys
+                if (e.key.match(/^[a-zA-Z0-9]$/)) {
+                    keySequence.push(e.key.toLowerCase());
+                    const maxLength = Math.max(ADMIN_CODE.length, HINT_CODE.length);
+                    if (keySequence.length > maxLength) {
+                        keySequence.shift();
                     }
-                    keySequence = []; // Reset sequence
+
+                    const sequence = keySequence.join('');
+                    if (sequence.includes(ADMIN_CODE)) {
+                        secretWordDisplay.textContent = secretWord;
+                        adminModal.classList.remove('hidden');
+                        keySequence = []; // Reset sequence
+                    } else if (sequence.includes(HINT_CODE)) {
+                        if (hintUsed) {
+                            showToast("Hint already used this game!");
+                        } else {
+                            hintText.textContent = generateHint(secretWord);
+                            hintModal.classList.remove('hidden');
+                            hintUsed = true;
+                        }
+                        keySequence = []; // Reset sequence
+                    }
                 }
 
                 if (isGameOver) return;
