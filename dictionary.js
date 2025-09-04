@@ -2,7 +2,7 @@ const dictionary = [
   "aahed",
   "aalii",
   "aargh",
-  "aarti",
+  "leela",
   "abaca",
   "abaci",
   "abacs",

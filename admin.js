@@ -1,4 +1,4 @@
 
 // Admin configuration
 export const ADMIN_CODE = 'veerbajajisadmin';
-export const HINT_CODE = 'team5171';
+export const HINT_CODE = 'falcons';
