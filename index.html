@@ -523,7 +523,14 @@
             function showGameOverModal(didWin) {
                 modalTitle.textContent = didWin ? "Congratulations!" : "Nice Try!";
                 const shareText = generateShareText(didWin);
-                shareContent.textContent = shareText;
+                
+                // Add the secret word to share content if player failed
+                if (!didWin) {
+                    shareContent.textContent = shareText + '\n\nThe word was: ' + secretWord;
+                } else {
+                    shareContent.textContent = shareText;
+                }
+                
                 gameOverModal.classList.remove('hidden');
 
                 shareButton.onclick = () => {
