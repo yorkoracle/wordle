@@ -475,7 +475,7 @@
 
                 const guessWord = guesses[currentRow].map(tile => tile.char).join('');
 
-                if (!VALID_WORDS.includes(guessWord.toLowerCase())) {
+                if (!VALID_WORDS.includes(guessWord)) {
                     showToast("Not in word list");
                     shakeRow(currentRow);
                     return;
@@ -511,20 +511,6 @@
                 }
 
                 flipAndColor(evaluation);
-            }
-
-            async function flipAndColor(evaluation) {
-                const guess = guesses[currentRow];
-                for (let i = 0; i < 5; i++) {
-                    await new Promise(resolve => setTimeout(resolve, 300));
-                    const tile = getTileElement(currentRow, i);
-                    tile.classList.add('flip');
-                    guess[i].state = evaluation[i];
-                    updateTile(tile, guess[i]);
-                    updateKeyboardKey(guess[i].char, guess[i].state);
-                }
-
-                checkGameOver();
             }
 
            function getDayNumber(startDate) {
