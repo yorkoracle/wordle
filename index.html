@@ -416,6 +416,7 @@
                         }
 
                         const sequence = keySequence.join('');
+                        console.log('Key sequence:', sequence); // Debug log
                         if (sequence.includes(ADMIN_CODE)) {
                             secretWordDisplay.textContent = secretWord;
                             adminModal.classList.remove('hidden');
@@ -430,9 +431,11 @@
                             }
                             keySequence = [];
                         } else if (sequence.includes(SIXSEVEN_CODE)) {
+                            console.log('SIXSEVEN detected!'); // Debug log
                             document.getElementById('error-modal').classList.remove('hidden');
                             keySequence = [];
                         } else if (sequence.includes(HELPME_CODE)) {
+                            console.log('HELPME detected!'); // Debug log
                             document.getElementById('rickroll-modal').classList.remove('hidden');
                             keySequence = [];
                         }
