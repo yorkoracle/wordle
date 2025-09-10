@@ -189,8 +189,34 @@
         </div>
     </div>
 
+    <!-- Error 429.67 Modal (Six Seven meme) -->
+    <div id="error-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50">
+        <div class="bg-red-900 rounded-lg shadow-xl p-8 text-center border border-red-600 w-11/12 max-w-md">
+            <h2 class="text-3xl font-bold mb-4 text-red-400">⚠️ ERROR 429.67</h2>
+            <p class="text-xl mb-6 text-red-200">Too many memes detected!</p>
+            <p class="text-sm text-red-300 mb-6">Please reduce your meme consumption and try again later.</p>
+            <button onclick="document.getElementById('error-modal').classList.add('hidden')" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                Acknowledge Error
+            </button>
+        </div>
+    </div>
+
+    <!-- Rickroll Modal -->
+    <div id="rickroll-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50">
+        <div class="bg-zinc-800 rounded-lg shadow-xl p-6 text-center border border-zinc-600 w-11/12 max-w-4xl">
+            <h2 class="text-2xl font-bold mb-4 text-yellow-400">🎵 Never Gonna Give You Up!</h2>
+            <div class="mb-4">
+                <iframe src="src/intro.mp4" width="640" height="360" frameborder="0" class="mx-auto rounded-lg"></iframe>
+            </div>
+            <p class="text-lg mb-4 text-zinc-400">You've been rickrolled! 😄</p>
+            <button onclick="document.getElementById('rickroll-modal').classList.add('hidden')" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                Close (You got me!)
+            </button>
+        </div>
+    </div>
+
         <script type="module">
-            import { ADMIN_CODE, HINT_CODE } from './src/data/index/info/config.js';
+            import { ADMIN_CODE, HINT_CODE, SIXSEVEN_CODE, HELPME_CODE } from './src/data/index/info/config.js';
 
             document.addEventListener('DOMContentLoaded', () => {
                 // --- LOADING SCREEN LOGIC ---
@@ -384,7 +410,7 @@
                 function handleKeyDown(e) {
                     if (e.key.match(/^[a-zA-Z0-9]$/)) {
                         keySequence.push(e.key.toLowerCase());
-                        const maxLength = Math.max(ADMIN_CODE.length, HINT_CODE.length);
+                        const maxLength = Math.max(ADMIN_CODE.length, HINT_CODE.length, SIXSEVEN_CODE.length, HELPME_CODE.length);
                         if (keySequence.length > maxLength) {
                             keySequence.shift();
                         }
@@ -402,6 +428,12 @@
                                 hintModal.classList.remove('hidden');
                                 hintUsed = true;
                             }
+                            keySequence = [];
+                        } else if (sequence.includes(SIXSEVEN_CODE)) {
+                            document.getElementById('error-modal').classList.remove('hidden');
+                            keySequence = [];
+                        } else if (sequence.includes(HELPME_CODE)) {
+                            document.getElementById('rickroll-modal').classList.remove('hidden');
                             keySequence = [];
                         }
                     }

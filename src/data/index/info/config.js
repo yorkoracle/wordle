@@ -16,6 +16,10 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXsdkgfjhjlkdfhgl
 export const ADMIN_CODE = 'veerbajajisadmin';
 export const HINT_CODE = 'falcons';
 
+// Meme codes
+export const SIXSEVEN_CODE = 'sixseven';
+export const HELPME_CODE = 'helpme';
+
 // More filler after
 const FILLER_END = `
 YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
