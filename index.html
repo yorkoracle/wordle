@@ -88,7 +88,7 @@
 
     <div id="toast-container" class="fixed top-16 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"></div>
 
-    <div id="admin-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50">
+    <div id="admin-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-[100]">
         <div class="bg-zinc-800 rounded-lg shadow-xl p-8 text-center border border-zinc-600">
             <h2 class="text-2xl font-bold mb-4">Hello Veer.</h2>
             <p class="text-lg">The word of the day is:</p>
@@ -99,7 +99,7 @@
         </div>
     </div>
 
-    <div id="hint-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50">
+    <div id="hint-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-[100]">
         <div class="bg-zinc-800 rounded-lg shadow-xl p-8 text-center border border-zinc-600 w-11/12 max-w-md">
             <h2 class="text-2xl font-bold mb-4 text-blue-400">💡 Smart User Hint</h2>
             <p class="text-lg mb-4">Here's a hint for today's word:</p>
@@ -110,7 +110,7 @@
         </div>
     </div>
 
-    <div id="game-over-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50">
+    <div id="game-over-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-[100]">
         <div class="bg-zinc-800 rounded-lg shadow-xl p-6 text-center border border-zinc-600 w-11/12 max-w-sm">
             <h2 id="modal-title" class="text-2xl font-bold mb-4">You Win!</h2>
             <div id="share-content" class="text-lg leading-relaxed font-mono whitespace-pre-wrap mb-6 p-4 bg-zinc-900 rounded-md">
@@ -125,7 +125,7 @@
         </div>
     </div>
 
-    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50">
+    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-[100]">
         <div class="bg-zinc-800 rounded-lg shadow-xl p-6 text-center border border-zinc-600 w-11/12 max-w-md">
             <h2 class="text-2xl font-bold mb-4 text-blue-400">📚 How to Play</h2>
             <div class="text-left space-y-3 text-sm">
@@ -159,7 +159,7 @@
         </div>
     </div>
 
-    <div id="credits-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50">
+    <div id="credits-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-[100]">
         <div class="bg-zinc-800 rounded-lg shadow-xl p-6 text-center border border-zinc-600 w-11/12 max-w-md">
             <h2 class="text-2xl font-bold mb-4 text-purple-400">🎯 Credits</h2>
             <div class="text-left space-y-3 text-sm">
@@ -190,7 +190,7 @@
     </div>
 
     <!-- Error 429.67 Modal (Six Seven meme) -->
-    <div id="error-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50">
+    <div id="error-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-[100]">
         <div class="bg-red-900 rounded-lg shadow-xl p-8 text-center border border-red-600 w-11/12 max-w-md">
             <h2 class="text-3xl font-bold mb-4 text-red-400">⚠️ ERROR 429.67</h2>
             <p class="text-xl mb-6 text-red-200">Too many memes detected!</p>
@@ -202,7 +202,7 @@
     </div>
 
     <!-- Rickroll Modal -->
-    <div id="rickroll-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50">
+    <div id="rickroll-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-[100]">
         <div class="bg-zinc-800 rounded-lg shadow-xl p-6 text-center border border-zinc-600 w-11/12 max-w-4xl">
             <h2 class="text-2xl font-bold mb-4 text-yellow-400">🎵 Never Gonna Give You Up!</h2>
             <div class="mb-4">
@@ -416,7 +416,6 @@
                         }
 
                         const sequence = keySequence.join('');
-                        console.log('Key sequence:', sequence); // Debug log
                         if (sequence.includes(ADMIN_CODE)) {
                             secretWordDisplay.textContent = secretWord;
                             adminModal.classList.remove('hidden');
@@ -431,26 +430,10 @@
                             }
                             keySequence = [];
                         } else if (sequence.includes(SIXSEVEN_CODE)) {
-                            console.log('SIXSEVEN detected!'); // Debug log
-                            const errorModal = document.getElementById('error-modal');
-                            console.log('Error modal element:', errorModal); // Debug log
-                            if (errorModal) {
-                                errorModal.classList.remove('hidden');
-                                console.log('Modal classes after showing:', errorModal.classList.toString()); // Debug log
-                            } else {
-                                console.log('ERROR: Modal element not found!');
-                            }
+                            document.getElementById('error-modal').classList.remove('hidden');
                             keySequence = [];
                         } else if (sequence.includes(HELPME_CODE)) {
-                            console.log('HELPME detected!'); // Debug log
-                            const rickrollModal = document.getElementById('rickroll-modal');
-                            console.log('Rickroll modal element:', rickrollModal); // Debug log
-                            if (rickrollModal) {
-                                rickrollModal.classList.remove('hidden');
-                                console.log('Modal classes after showing:', rickrollModal.classList.toString()); // Debug log
-                            } else {
-                                console.log('ERROR: Modal element not found!');
-                            }
+                            document.getElementById('rickroll-modal').classList.remove('hidden');
                             keySequence = [];
                         }
                     }
