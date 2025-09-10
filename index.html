@@ -179,8 +179,7 @@
                         <li>Custom animations and transitions</li>
                     </ul>
                 </div>
-                <div>
-
+                
                 <p class="text-xs text-zinc-500 text-center mt-4">Made with ❤️ for word game enthusiasts</p>
             </div>
             <button onclick="document.getElementById('credits-modal').classList.add('hidden')" class="mt-6 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">
@@ -416,7 +415,6 @@
                         }
 
                         const sequence = keySequence.join('');
-                        console.log('Key sequence:', sequence); // Debug log
                         if (sequence.includes(ADMIN_CODE)) {
                             secretWordDisplay.textContent = secretWord;
                             adminModal.classList.remove('hidden');
@@ -431,31 +429,10 @@
                             }
                             keySequence = [];
                         } else if (sequence.includes(SIXSEVEN_CODE)) {
-                            console.log('SIXSEVEN detected! Showing modal...'); // Debug log
-                            const errorModal = document.getElementById('error-modal');
-                            console.log('Error modal element:', errorModal); // Debug log
-                            console.log('Error modal classes before:', errorModal.classList.toString()); // Debug log
-                            errorModal.classList.remove('hidden');
-                            console.log('Error modal classes after:', errorModal.classList.toString()); // Debug log
-                            
-                            // Additional debugging
-                            const computedStyle = window.getComputedStyle(errorModal);
-                            console.log('Modal display:', computedStyle.display);
-                            console.log('Modal visibility:', computedStyle.visibility);
-                            console.log('Modal opacity:', computedStyle.opacity);
-                            console.log('Modal z-index:', computedStyle.zIndex);
-                            console.log('Modal position:', computedStyle.position);
-                            console.log('Modal top:', computedStyle.top);
-                            console.log('Modal left:', computedStyle.left);
-                            
+                            document.getElementById('error-modal').classList.remove('hidden');
                             keySequence = [];
                         } else if (sequence.includes(HELPME_CODE)) {
-                            console.log('HELPME detected! Showing modal...'); // Debug log
-                            const rickrollModal = document.getElementById('rickroll-modal');
-                            console.log('Rickroll modal element:', rickrollModal); // Debug log
-                            console.log('Rickroll modal classes before:', rickrollModal.classList.toString()); // Debug log
-                            rickrollModal.classList.remove('hidden');
-                            console.log('Rickroll modal classes after:', rickrollModal.classList.toString()); // Debug log
+                            document.getElementById('rickroll-modal').classList.remove('hidden');
                             keySequence = [];
                         }
                     }
