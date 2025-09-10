@@ -289,8 +289,7 @@
                     const solutionsText = await solutionsResponse.text();
                     const guessesText = await guessesResponse.text();
 
-                    const startDate = new Date(startDateText.trim());
-
+                    const startDate = new Date('2024-01-01T00:00:00Z');
                     let solutions = solutionsText.split('\n').map(word => word.trim().toUpperCase()).filter(Boolean);
                     const guesses = guessesText.split('\n').map(word => word.trim().toUpperCase()).filter(Boolean);
                     
@@ -526,8 +525,7 @@
             }
 
             function generateShareText(didWin) {
-                const dayNumber = getDayNumber();
-                const score = didWin ? currentRow + 1 : 'X';
+                const dayNumber = getDayNumber(new Date('2024-01-01T00:00:00Z'));                const score = didWin ? currentRow + 1 : 'X';
                 let text = `York Wordle #${dayNumber} ${score}/6\n\n`;
 
                 const emojiMap = {
