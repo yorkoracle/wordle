@@ -437,6 +437,17 @@
                             console.log('Error modal classes before:', errorModal.classList.toString()); // Debug log
                             errorModal.classList.remove('hidden');
                             console.log('Error modal classes after:', errorModal.classList.toString()); // Debug log
+                            
+                            // Additional debugging
+                            const computedStyle = window.getComputedStyle(errorModal);
+                            console.log('Modal display:', computedStyle.display);
+                            console.log('Modal visibility:', computedStyle.visibility);
+                            console.log('Modal opacity:', computedStyle.opacity);
+                            console.log('Modal z-index:', computedStyle.zIndex);
+                            console.log('Modal position:', computedStyle.position);
+                            console.log('Modal top:', computedStyle.top);
+                            console.log('Modal left:', computedStyle.left);
+                            
                             keySequence = [];
                         } else if (sequence.includes(HELPME_CODE)) {
                             console.log('HELPME detected! Showing modal...'); // Debug log
