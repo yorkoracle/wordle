@@ -277,40 +277,44 @@
             // --- INITIALIZATION ---
             // --- INITIALIZATION ---
             async function initializeGame() {
-                try {
-                    // Fetch the start date and word lists
-                    const [startDateResponse, solutionsResponse, guessesResponse] = await Promise.all([
-                        fetch('./src/data/index/date.txt'),
-                        fetch('./src/data/solutions.txt'),
-                        fetch('./src/data/guesses.txt')
-                    ]);
+    try {
+        // Fetch the start date and word lists
+        const [startDateResponse, solutionsResponse, guessesResponse] = await Promise.all([
+            fetch('./src/data/index/date.txt'),
+            fetch('./src/data/solutions.txt'),
+            fetch('./src/data/guesses.txt')
+        ]);
 
-                    const startDateText = await startDateResponse.text();
-                    const solutionsText = await solutionsResponse.text();
-                    const guessesText = await guessesResponse.text();
+        if (!startDateResponse.ok || !solutionsResponse.ok || !guessesResponse.ok) {
+            throw new Error('Failed to load game data.');
+        }
 
-                    const startDate = new Date('2024-01-01T00:00:00Z');
-                    let solutions = solutionsText.split('\n').map(word => word.trim().toUpperCase()).filter(Boolean);
-                    const guesses = guessesText.split('\n').map(word => word.trim().toUpperCase()).filter(Boolean);
-                    
-                    const seed = getTodaysSeed();
-                    solutions = seededShuffle(solutions, seed);
-                    
-                    DAILY_WORDS = solutions;
-                    VALID_WORDS = [...DAILY_WORDS, ...guesses];
+        const startDateText = await startDateResponse.text();
+        const solutionsText = await solutionsResponse.text();
+        const guessesText = await guessesResponse.text();
 
-                    secretWord = getWordOfTheDay(DAILY_WORDS, startDate); // Pass startDate here
-                    hintUsed = false;
-                    createGrid();
-                    createKeyboard();
-                    setupEventListeners();
-                    
-                } catch (error) {
-                    console.error("Failed to load game data:", error);
-                    showToast("Error: Could not load game data.");
-                }
-            }
+        const startDate = new Date('2024-01-01T00:00:00Z'); // Hardcoded for now
 
+        let solutions = solutionsText.split('\n').map(word => word.trim().toUpperCase()).filter(Boolean);
+        const guessesList = guessesText.split('\n').map(word => word.trim().toUpperCase()).filter(Boolean);
+
+        const seed = getTodaysSeed();
+        solutions = seededShuffle(solutions, seed);
+
+        DAILY_WORDS = solutions;
+        VALID_WORDS = [...new Set([...DAILY_WORDS, ...guessesList])]; // Use a Set to remove duplicates
+
+        secretWord = getWordOfTheDay(DAILY_WORDS, startDate);
+        hintUsed = false;
+        createGrid();
+        createKeyboard();
+        setupEventListeners();
+
+    } catch (error) {
+        console.error("Failed to load game data:", error);
+        showToast("Error: Could not load game data.");
+    }
+}
             function getWordOfTheDay(dailyWords, startDate) {
                 const now = new Date();
 
