@@ -204,7 +204,7 @@
     </div>
 
     <script type="module">
-        import dictionary from './src/data/dictionary.js';
+        
         import { ADMIN_CODE, HINT_CODE } from './src/data/index/info/config.js';
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -228,8 +228,8 @@
             });
 
             // --- WORD LISTS ---
-            const VALID_WORDS = dictionary;
-            const DAILY_WORDS = dictionary.map(word => word.toUpperCase());
+            // const VALID_WORDS = dictionary;
+            // const DAILY_WORDS = dictionary.map(word => word.toUpperCase());
 
             // --- GAME STATE ---
             let guesses = Array(6).fill(null).map(() => Array(5).fill({ char: '', state: 'empty' }));
@@ -260,15 +260,41 @@
             const creditsModal = document.getElementById('credits-modal');
 
             // --- INITIALIZATION ---
-            function initializeGame() {
-                secretWord = getWordOfTheDay();
-                hintUsed = false; // Reset hint usage for new game
-                createGrid();
-                createKeyboard();
-                setupEventListeners();
+            // --- INITIALIZATION ---
+            async function initializeGame() {
+                try {
+                    // Fetch and parse the word lists
+                    const [solutionsResponse, guessesResponse] = await Promise.all([
+                        fetch('./src/data/solutions.txt'),
+                        fetch('./src/data/guesses.txt')
+                    ]);
+
+                    const solutionsText = await solutionsResponse.text();
+                    const guessesText = await guessesResponse.text();
+
+                    const solutions = solutionsText.split('\n').map(word => word.trim().toUpperCase()).filter(Boolean);
+                    const guesses = guessesText.split('\n').map(word => word.trim().toUpperCase()).filter(Boolean);
+                    
+                    const DAILY_WORDS = solutions;
+                    const VALID_WORDS = [...DAILY_WORDS, ...guesses];
+
+
+                    secretWord = getWordOfTheDay(DAILY_WORDS);
+                    hintUsed = false; // Reset hint usage for new game
+                    createGrid();
+                    createKeyboard();
+                    setupEventListeners();
+                    
+                    // Now, make sure to pass DAILY_WORDS and VALID_WORDS to the functions that need them
+                    // For example, you will need to update submitGuess to use VALID_WORDS
+                    
+                } catch (error) {
+                    console.error("Failed to load word lists:", error);
+                    showToast("Error: Could not load game words.");
+                }
             }
 
-            function getWordOfTheDay() {
+            function getWordOfTheDay(DAILY_WORDS) {
                 const startDate = new Date('2025-08-29T00:00:00Z');
                 const now = new Date();
 
@@ -283,6 +309,8 @@
                 const wordIndex = dayIndex % DAILY_WORDS.length;
                 return DAILY_WORDS[wordIndex];
             }
+
+               
 
             function generateHint(word) {
                 const hints = [
