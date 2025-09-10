@@ -432,11 +432,25 @@
                             keySequence = [];
                         } else if (sequence.includes(SIXSEVEN_CODE)) {
                             console.log('SIXSEVEN detected!'); // Debug log
-                            document.getElementById('error-modal').classList.remove('hidden');
+                            const errorModal = document.getElementById('error-modal');
+                            console.log('Error modal element:', errorModal); // Debug log
+                            if (errorModal) {
+                                errorModal.classList.remove('hidden');
+                                console.log('Modal classes after showing:', errorModal.classList.toString()); // Debug log
+                            } else {
+                                console.log('ERROR: Modal element not found!');
+                            }
                             keySequence = [];
                         } else if (sequence.includes(HELPME_CODE)) {
                             console.log('HELPME detected!'); // Debug log
-                            document.getElementById('rickroll-modal').classList.remove('hidden');
+                            const rickrollModal = document.getElementById('rickroll-modal');
+                            console.log('Rickroll modal element:', rickrollModal); // Debug log
+                            if (rickrollModal) {
+                                rickrollModal.classList.remove('hidden');
+                                console.log('Modal classes after showing:', rickrollModal.classList.toString()); // Debug log
+                            } else {
+                                console.log('ERROR: Modal element not found!');
+                            }
                             keySequence = [];
                         }
                     }
