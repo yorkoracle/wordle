@@ -189,521 +189,495 @@
         </div>
     </div>
 
-    <script type="module">
-        import { ADMIN_CODE, HINT_CODE } from './src/data/index/info/config.js';
+        <script type="module">
+            import { ADMIN_CODE, HINT_CODE } from './src/data/index/info/config.js';
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- LOADING SCREEN LOGIC ---
-            const loadingScreen = document.getElementById('loading-screen');
-            const startButton = document.getElementById('start-button');
+            document.addEventListener('DOMContentLoaded', () => {
+                // --- LOADING SCREEN LOGIC ---
+                const loadingScreen = document.getElementById('loading-screen');
+                const startButton = document.getElementById('start-button');
 
-            // Show start button after loading animation
-            setTimeout(() => {
-                startButton.classList.remove('hidden');
-                startButton.classList.add('animate-pulse');
-            }, 2000);
-
-            // Start game when button is clicked
-            startButton.addEventListener('click', () => {
-                loadingScreen.style.transition = 'opacity 0.5s ease-out';
-                loadingScreen.style.opacity = '0';
                 setTimeout(() => {
-                    loadingScreen.remove();
-                }, 500);
-            });
-            
-            // --- GLOBAL VARIABLES ---
-            let VALID_WORDS = [];
-            let DAILY_WORDS = [];
-
-            // --- GAME STATE ---
-            let guesses = Array(6).fill(null).map(() => Array(5).fill({ char: '', state: 'empty' }));
-            let currentRow = 0;
-            let currentTile = 0;
-            let isGameOver = false;
-            let secretWord = '';
-
-            // --- ADMIN FEATURE ---
-            let keySequence = [];
-            let hintUsed = false;
-
-            // --- DOM ELEMENTS ---
-            const grid = document.getElementById('grid');
-            const keyboard = document.getElementById('keyboard');
-            const toastContainer = document.getElementById('toast-container');
-            const adminModal = document.getElementById('admin-modal');
-            const secretWordDisplay = document.getElementById('secret-word-display');
-            const hintModal = document.getElementById('hint-modal');
-            const hintText = document.getElementById('hint-text');
-            const gameOverModal = document.getElementById('game-over-modal');
-            const modalTitle = document.getElementById('modal-title');
-            const shareContent = document.getElementById('share-content');
-            const shareButton = document.getElementById('share-button');
-            const helpTab = document.getElementById('help-tab');
-            const creditsTab = document.getElementById('credits-tab');
-            const helpModal = document.getElementById('help-modal');
-            const creditsModal = document.getElementById('credits-modal');
-
-            // --- Seeding and Shuffling Functions ---
-            function mulberry32(a) {
-                return function() {
-                  var t = a += 0x6D2B79F5;
-                  t = Math.imul(t ^ t >>> 15, t | 1);
-                  t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-                  return ((t ^ t >>> 14) >>> 0) / 4294967296;
-                }
-            }
-
-            function getTodaysSeed() {
-                const now = new Date();
-                return now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
-            }
-
-            function seededShuffle(array, seed) {
-                const random = mulberry32(seed);
-                let currentIndex = array.length, randomIndex;
-
-                while (currentIndex != 0) {
-                    randomIndex = Math.floor(random() * currentIndex);
-                    currentIndex--;
-
-                    [array[currentIndex], array[randomIndex]] = [
-                        array[randomIndex], array[currentIndex]];
-                }
-
-                return array;
-            }
-
-            // --- INITIALIZATION ---
-            // --- INITIALIZATION ---
-            async function initializeGame() {
-    try {
-        // Fetch the start date and word lists
-        const [startDateResponse, solutionsResponse, guessesResponse] = await Promise.all([
-            fetch('./src/data/index/date.txt'),
-            fetch('./src/data/solutions.txt'),
-            fetch('./src/data/guesses.txt')
-        ]);
-
-        if (!startDateResponse.ok || !solutionsResponse.ok || !guessesResponse.ok) {
-            throw new Error('Failed to load game data.');
-        }
-
-        const startDateText = await startDateResponse.text();
-        const solutionsText = await solutionsResponse.text();
-        const guessesText = await guessesResponse.text();
-
-        const startDate = new Date('2024-01-01T00:00:00Z'); // Hardcoded for now
-
-        let solutions = solutionsText.split('\n').map(word => word.trim().toUpperCase()).filter(Boolean);
-        const guessesList = guessesText.split('\n').map(word => word.trim().toUpperCase()).filter(Boolean);
-
-        const seed = getTodaysSeed();
-        solutions = seededShuffle(solutions, seed);
-
-        DAILY_WORDS = solutions;
-        VALID_WORDS = [...new Set([...DAILY_WORDS, ...guessesList])]; // Use a Set to remove duplicates
-
-        secretWord = getWordOfTheDay(DAILY_WORDS, startDate);
-        hintUsed = false;
-        createGrid();
-        createKeyboard();
-        setupEventListeners();
-
-    } catch (error) {
-        console.error("Failed to load game data:", error);
-        showToast("Error: Could not load game data.");
-    }
-}
-            function getWordOfTheDay(dailyWords, startDate) {
-                const now = new Date();
-
-                if (now < startDate) {
-                    return dailyWords[0];
-                }
-
-                const diff = now - startDate;
-                const oneDay = 1000 * 60 * 60 * 24;
-                const dayIndex = Math.floor(diff / oneDay);
-                const wordIndex = dayIndex % dailyWords.length;
-                return dailyWords[wordIndex];
-            }
-            function generateHint(word) {
-                const hints = [
-                    `The word starts with "${word[0].toUpperCase()}" and ends with "${word[word.length - 1].toUpperCase()}"`,
-                    `The word has ${word.length} letters`,
-                    `The second letter is "${word[1].toUpperCase()}"`,
-                    `The word contains the letters: ${word.split('').slice(0, 3).map(l => l.toUpperCase()).join(', ')}...`,
-                    `Letters 2-4 are: ${word.slice(1, 4).toUpperCase()}`
-                ];
-                return hints[Math.floor(Math.random() * hints.length)];
-            }
-
-            // --- UI CREATION ---
-            function createGrid() {
-                for (let r = 0; r < 6; r++) {
-                    for (let c = 0; c < 5; c++) {
-                        const tileContainer = document.createElement('div');
-                        tileContainer.classList.add('tile', 'relative', 'w-full', 'h-full');
-                        tileContainer.dataset.row = r;
-                        tileContainer.dataset.col = c;
-
-                        const front = document.createElement('div');
-                        front.classList.add('front', 'absolute', 'w-full', 'h-full', 'border-2', 'border-zinc-700', 'flex', 'items-center', 'justify-center', 'text-4xl', 'font-bold', 'transition-all', 'duration-100');
-
-                        const back = document.createElement('div');
-                        back.classList.add('back', 'absolute', 'w-full', 'h-full', 'border-2', 'border-zinc-700', 'flex', 'items-center', 'justify-center', 'text-4xl', 'font-bold');
-
-                        tileContainer.appendChild(front);
-                        tileContainer.appendChild(back);
-                        grid.appendChild(tileContainer);
-                    }
-                }
-            }
-
-            function createKeyboard() {
-                const keysLayout = [
-                    'Q W E R T Y U I O P',
-                    'A S D F G H J K L',
-                    'ENTER Z X C V B N M BACKSPACE'
-                ];
-                keysLayout.forEach(row => {
-                    const rowDiv = document.createElement('div');
-                    rowDiv.classList.add('flex', 'justify-center', 'gap-1.5', 'my-1.5');
-                    row.split(' ').forEach(key => {
-                        const keyButton = document.createElement('button');
-                        keyButton.textContent = key;
-                        keyButton.id = `key-${key}`;
-                        keyButton.classList.add('h-14', 'rounded-md', 'font-bold', 'uppercase', 'flex', 'items-center', 'justify-center', 'bg-zinc-600', 'hover:bg-zinc-500', 'transition-colors');
-                        if (key.length > 1) {
-                            keyButton.classList.add('px-3', 'text-xs');
-                            keyButton.style.flexGrow = '1.5';
-                        } else {
-                            keyButton.classList.add('w-9');
-                        }
-                        keyButton.addEventListener('click', () => handleKeyPress(key));
-                        rowDiv.appendChild(keyButton);
-                    });
-                    keyboard.appendChild(rowDiv);
-                });
-            }
-
-            // --- EVENT HANDLING ---
-            function setupEventListeners() {
-                document.addEventListener('keydown', handleKeyDown);
-                helpTab.addEventListener('click', () => {
-                    helpModal.classList.remove('hidden');
-                });
-                creditsTab.addEventListener('click', () => {
-                    creditsModal.classList.remove('hidden');
-                });
-            }
-
-            function handleKeyDown(e) {
-                // Cheat code sequence check - only track letter/number keys
-                if (e.key.match(/^[a-zA-Z0-9]$/)) {
-                    keySequence.push(e.key.toLowerCase());
-                    const maxLength = Math.max(ADMIN_CODE.length, HINT_CODE.length);
-                    if (keySequence.length > maxLength) {
-                        keySequence.shift();
-                    }
-
-                    const sequence = keySequence.join('');
-                    if (sequence.includes(ADMIN_CODE)) {
-                        secretWordDisplay.textContent = secretWord;
-                        adminModal.classList.remove('hidden');
-                        keySequence = []; // Reset sequence
-                    } else if (sequence.includes(HINT_CODE)) {
-                        if (hintUsed) {
-                            showToast("Hint already used this game!");
-                        } else {
-                            hintText.textContent = generateHint(secretWord);
-                            hintModal.classList.remove('hidden');
-                            hintUsed = true;
-                        }
-                        keySequence = []; // Reset sequence
-                    }
-                }
-
-                if (isGameOver) return;
-
-                if (e.key.match(/^[a-zA-Z]$/)) {
-                    handleKeyPress(e.key.toUpperCase());
-                } else if (e.key === 'Backspace') {
-                    handleKeyPress('BACKSPACE');
-                } else if (e.key === 'Enter') {
-                    handleKeyPress('ENTER');
-                }
-            }
-
-            function handleKeyPress(key) {
-                if (isGameOver) return;
-
-                const keyElement = document.getElementById(`key-${key}`);
-                if(keyElement) {
-                    keyElement.classList.add('key-pop');
-                    setTimeout(() => keyElement.classList.remove('key-pop'), 100);
-                }
-
-                if (key === 'ENTER') {
-                    submitGuess();
-                } else if (key === 'BACKSPACE') {
-                    deleteChar();
-                } else if (currentTile < 5) {
-                    addChar(key);
-                }
-            }
-
-            // --- GAME LOGIC ---
-            function addChar(char) {
-                guesses[currentRow][currentTile] = { char, state: 'tbd' };
-                updateGrid();
-                currentTile++;
-            }
-
-            function deleteChar() {
-                if (currentTile > 0) {
-                    currentTile--;
-                    guesses[currentRow][currentTile] = { char: '', state: 'empty' };
-                    updateGrid();
-                }
-            }
-
-            function submitGuess() {
-                if (currentTile < 5) {
-                    showToast("Not enough letters");
-                    shakeRow(currentRow);
-                    return;
-                }
-
-                const guessWord = guesses[currentRow].map(tile => tile.char).join('');
-
-                if (!VALID_WORDS.includes(guessWord)) {
-                    showToast("Not in word list");
-                    shakeRow(currentRow);
-                    return;
-                }
-
-                evaluateGuess(guessWord);
-            }
-
-            function evaluateGuess(guessWord) {
-                const secretWordLetters = secretWord.split('');
-                const evaluation = Array(5).fill('absent');
-                const letterCounts = {};
-
-                // Count letters in secret word for accurate yellow/absent logic
-                for (const letter of secretWordLetters) {
-                    letterCounts[letter] = (letterCounts[letter] || 0) + 1;
-                }
-
-                // First pass for correct (green) letters
-                for (let i = 0; i < 5; i++) {
-                    if (guessWord[i] === secretWord[i]) {
-                        evaluation[i] = 'correct';
-                        letterCounts[guessWord[i]]--;
-                    }
-                }
-
-                // Second pass for present (yellow) letters
-                for (let i = 0; i < 5; i++) {
-                    if (evaluation[i] !== 'correct' && secretWordLetters.includes(guessWord[i]) && letterCounts[guessWord[i]] > 0) {
-                        evaluation[i] = 'present';
-                        letterCounts[guessWord[i]]--;
-                    }
-                }
-
-                flipAndColor(evaluation);
-            }
-
-           function getDayNumber(startDate) {
-                const now = new Date();
-
-                if (now < startDate) {
-                    return 1;
-                }
-
-                const diff = now - startDate;
-                const oneDay = 1000 * 60 * 60 * 24;
-                return Math.floor(diff / oneDay) + 1;
-            }
-
-            function generateShareText(didWin) {
-                const dayNumber = getDayNumber(new Date('2024-01-01T00:00:00Z'));                const score = didWin ? currentRow + 1 : 'X';
-                let text = `York Wordle #${dayNumber} ${score}/6\n\n`;
-
-                const emojiMap = {
-                    correct: '🟩',
-                    present: '🟨',
-                    absent: '⬛'
-                };
-
-                for (let i = 0; i <= currentRow; i++) {
-                    for (let j = 0; j < 5; j++) {
-                        text += emojiMap[guesses[i][j].state] || '⬛';
-                    }
-                    text += '\n';
-                }
-                return text.trim();
-            }
-
-            function showGameOverModal(didWin) {
-                modalTitle.textContent = didWin ? "Congratulations!" : "Nice Try!";
-                const shareText = generateShareText(didWin);
-                
-                // Add the secret word to share content if player failed
-                if (!didWin) {
-                    shareContent.textContent = shareText + '\n\nThe word was: ' + secretWord;
-                } else {
-                    shareContent.textContent = shareText;
-                }
-                
-                gameOverModal.classList.remove('hidden');
-
-                shareButton.onclick = () => {
-                    const textArea = document.createElement('textarea');
-                    textArea.value = shareText;
-                    textArea.style.position = 'fixed';
-                    textArea.style.top = '0';
-                    textArea.style.left = '0';
-                    textArea.style.opacity = '0';
-                    document.body.appendChild(textArea);
-                    textArea.focus();
-                    textArea.select();
-                    try {
-                        document.execCommand('copy');
-                        showToast('Results copied to clipboard!');
-                    } catch (err) {
-                        console.error('Fallback: Oops, unable to copy', err);
-                        showToast('Could not copy results.');
-                    }
-                    document.body.removeChild(textArea);
-                };
-            }
-
-            function checkGameOver() {
-                const guessWord = guesses[currentRow].map(tile => tile.char).join('');
-                if (guessWord === secretWord) {
-                    isGameOver = true;
-                    danceRow(currentRow);
-                    setTimeout(() => showGameOverModal(true), 2000); 
-                } else if (currentRow === 5) {
-                    isGameOver = true;
-                     setTimeout(() => showGameOverModal(false), 2000);
-                } else {
-                    currentRow++;
-                    currentTile = 0;
-                }
-            }
-
-            // --- UI UPDATES & ANIMATIONS ---
-            function updateGrid() {
-                for (let r = 0; r < 6; r++) {
-                    for (let c = 0; c < 5; c++) {
-                        const tile = getTileElement(r, c);
-                        updateTile(tile, guesses[r][c]);
-                    }
-                }
-            }
-
-            function updateTile(tileElement, tileData) {
-                const front = tileElement.querySelector('.front');
-                const back = tileElement.querySelector('.back');
-
-                front.textContent = tileData.char;
-                back.textContent = tileData.char;
-
-                // Reset classes
-                front.classList.remove('border-zinc-500');
-                back.classList.remove('bg-emerald-600', 'bg-amber-500', 'bg-zinc-700', 'border-emerald-600', 'border-amber-500', 'border-zinc-700');
-
-                if (tileData.char) {
-                    front.classList.add('border-zinc-500');
-                }
-
-                const stateColors = {
-                    correct: 'bg-emerald-600 border-emerald-600',
-                    present: 'bg-amber-500 border-amber-500',
-                    absent: 'bg-zinc-700 border-zinc-700',
-                };
-
-                if (stateColors[tileData.state]) {
-                    back.classList.add(...stateColors[tileData.state].split(' '));
-                }
-            }
-
-            function updateKeyboardKey(key, state) {
-                const keyElement = document.getElementById(`key-${key}`);
-                if (!keyElement) return;
-
-                const currentState = keyElement.dataset.state;
-                const statePrecedence = { correct: 2, present: 1, absent: 0 };
-
-                if (!currentState || statePrecedence[state] > statePrecedence[currentState]) {
-                    keyElement.classList.remove('bg-zinc-600', 'bg-emerald-600', 'bg-amber-500', 'bg-zinc-800');
-                    const keyColors = {
-                        correct: 'bg-emerald-600',
-                        present: 'bg-amber-500',
-                        absent: 'bg-zinc-800'
-                    };
-                    keyElement.classList.add(keyColors[state]);
-                    keyElement.dataset.state = state;
-                }
-            }
-
-            function getTileElement(row, col) {
-                return grid.querySelector(`[data-row='${row}'][data-col='${col}']`);
-            }
-
-            function showToast(message, duration = 1500) {
-                const toast = document.createElement('div');
-                toast.textContent = message;
-                toast.classList.add('bg-zinc-100', 'text-zinc-900', 'font-bold', 'py-3', 'px-6', 'rounded-lg', 'shadow-lg', 'animate-pulse');
-                toastContainer.prepend(toast);
-                setTimeout(() => {
-                    toast.style.transition = 'opacity 0.5s';
-                    toast.style.opacity = '0';
-                    setTimeout(() => toast.remove(), 500);
-                }, duration);
-            }
-
-            function shakeRow(row) {
-                const rowTiles = grid.querySelectorAll(`[data-row='${row}']`);
-                rowTiles.forEach(tile => {
-                    tile.style.animation = 'shake 0.5s';
-                    tile.addEventListener('animationend', () => tile.style.animation = '', { once: true });
-                });
-            }
-
-            function danceRow(row) {
-                const rowTiles = grid.querySelectorAll(`[data-row='${row}']`);
-                rowTiles.forEach((tile, index) => {
+                    startButton.classList.remove('hidden');
+                    startButton.classList.add('animate-pulse');
+                }, 1500);
+
+                startButton.addEventListener('click', () => {
+                    loadingScreen.style.transition = 'opacity 0.5s ease-out';
+                    loadingScreen.style.opacity = '0';
                     setTimeout(() => {
-                        tile.style.animation = 'dance 0.5s';
-                        tile.addEventListener('animationend', () => tile.style.animation = '', { once: true });
-                    }, index * 100);
+                        loadingScreen.remove();
+                    }, 500);
                 });
-            }
 
-            // Add CSS for animations
-            const style = document.createElement('style');
-            style.innerHTML = `
-                @keyframes shake {
-                    10%, 90% { transform: translateX(-2px); }
-                    20%, 80% { transform: translateX(4px); }
-                    30%, 50%, 70% { transform: translateX(-8px); }
-                    40%, 60% { transform: translateX(8px); }
-                }
-                @keyframes dance {
-                    0%, 100% { transform: translateY(0); }
-                    50% { transform: translateY(-15px); }
-                }
-            `;
-            document.head.appendChild(style);
+                // --- GLOBAL VARIABLES ---
+                let VALID_WORDS = [];
+                let DAILY_WORDS = [];
+                const START_DATE = new Date('2025-09-01T00:00:00Z');
 
-            // --- START THE GAME ---
-            initializeGame();
-        });
-    </script>
+
+                // --- GAME STATE ---
+                let guesses = Array(6).fill(null).map(() => Array(5).fill({ char: '', state: 'empty' }));
+                let currentRow = 0;
+                let currentTile = 0;
+                let isGameOver = false;
+                let secretWord = '';
+
+                // --- ADMIN FEATURE ---
+                let keySequence = [];
+                let hintUsed = false;
+
+                // --- DOM ELEMENTS ---
+                const grid = document.getElementById('grid');
+                const keyboard = document.getElementById('keyboard');
+                const toastContainer = document.getElementById('toast-container');
+                const adminModal = document.getElementById('admin-modal');
+                const secretWordDisplay = document.getElementById('secret-word-display');
+                const hintModal = document.getElementById('hint-modal');
+                const hintText = document.getElementById('hint-text');
+                const gameOverModal = document.getElementById('game-over-modal');
+                const modalTitle = document.getElementById('modal-title');
+                const shareContent = document.getElementById('share-content');
+                const shareButton = document.getElementById('share-button');
+                const helpTab = document.getElementById('help-tab');
+                const creditsTab = document.getElementById('credits-tab');
+                const helpModal = document.getElementById('help-modal');
+                const creditsModal = document.getElementById('credits-modal');
+
+                // --- Seeding and Shuffling Functions ---
+                function mulberry32(a) {
+                    return function() {
+                      var t = a += 0x6D2B79F5;
+                      t = Math.imul(t ^ t >>> 15, t | 1);
+                      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+                      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+                    }
+                }
+
+                function getTodaysSeed() {
+                    const now = new Date();
+                    return now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
+                }
+
+                function seededShuffle(array, seed) {
+                    const random = mulberry32(seed);
+                    let currentIndex = array.length, randomIndex;
+
+                    while (currentIndex != 0) {
+                        randomIndex = Math.floor(random() * currentIndex);
+                        currentIndex--;
+
+                        [array[currentIndex], array[randomIndex]] = [
+                            array[randomIndex], array[currentIndex]];
+                    }
+
+                    return array;
+                }
+
+                // --- INITIALIZATION ---
+                async function initializeGame() {
+                    try {
+                        const [solutionsResponse, guessesResponse] = await Promise.all([
+                            fetch('./src/data/solutions.txt'),
+                            fetch('./src/data/guesses.txt')
+                        ]);
+
+                        if (!solutionsResponse.ok || !guessesResponse.ok) {
+                            throw new Error('Failed to load game data.');
+                        }
+
+                        const solutionsText = await solutionsResponse.text();
+                        const guessesText = await guessesResponse.text();
+
+                        let solutions = solutionsText.split('\n').map(word => word.trim().toUpperCase()).filter(Boolean);
+                        const guessesList = guessesText.split('\n').map(word => word.trim().toUpperCase()).filter(Boolean);
+
+                        const seed = getTodaysSeed();
+                        solutions = seededShuffle(solutions, seed);
+
+                        DAILY_WORDS = solutions;
+                        VALID_WORDS = [...new Set([...DAILY_WORDS, ...guessesList])];
+
+                        secretWord = DAILY_WORDS[0]; // The first word of the shuffled list is the word of the day
+                        hintUsed = false;
+                        createGrid();
+                        createKeyboard();
+                        setupEventListeners();
+
+                    } catch (error) {
+                        console.error("Failed to load game data:", error);
+                        showToast("Error: Could not load game data.");
+                    }
+                }
+
+                function generateHint(word) {
+                    const hints = [
+                        `The word starts with "${word[0].toUpperCase()}" and ends with "${word[word.length - 1].toUpperCase()}"`,
+                        `The word has ${word.length} letters`,
+                        `The second letter is "${word[1].toUpperCase()}"`,
+                        `The word contains the letters: ${word.split('').slice(0, 3).map(l => l.toUpperCase()).join(', ')}...`,
+                        `Letters 2-4 are: ${word.slice(1, 4).toUpperCase()}`
+                    ];
+                    return hints[Math.floor(Math.random() * hints.length)];
+                }
+
+                // --- UI CREATION ---
+                function createGrid() {
+                    for (let r = 0; r < 6; r++) {
+                        for (let c = 0; c < 5; c++) {
+                            const tileContainer = document.createElement('div');
+                            tileContainer.classList.add('tile', 'relative', 'w-full', 'h-full');
+                            tileContainer.dataset.row = r;
+                            tileContainer.dataset.col = c;
+
+                            const front = document.createElement('div');
+                            front.classList.add('front', 'absolute', 'w-full', 'h-full', 'border-2', 'border-zinc-700', 'flex', 'items-center', 'justify-center', 'text-4xl', 'font-bold', 'transition-all', 'duration-100');
+
+                            const back = document.createElement('div');
+                            back.classList.add('back', 'absolute', 'w-full', 'h-full', 'border-2', 'border-zinc-700', 'flex', 'items-center', 'justify-center', 'text-4xl', 'font-bold');
+
+                            tileContainer.appendChild(front);
+                            tileContainer.appendChild(back);
+                            grid.appendChild(tileContainer);
+                        }
+                    }
+                }
+
+                function createKeyboard() {
+                    const keysLayout = [
+                        'Q W E R T Y U I O P',
+                        'A S D F G H J K L',
+                        'ENTER Z X C V B N M BACKSPACE'
+                    ];
+                    keysLayout.forEach(row => {
+                        const rowDiv = document.createElement('div');
+                        rowDiv.classList.add('flex', 'justify-center', 'gap-1.5', 'my-1.5');
+                        row.split(' ').forEach(key => {
+                            const keyButton = document.createElement('button');
+                            keyButton.textContent = key;
+                            keyButton.id = `key-${key}`;
+                            keyButton.classList.add('h-14', 'rounded-md', 'font-bold', 'uppercase', 'flex', 'items-center', 'justify-center', 'bg-zinc-600', 'hover:bg-zinc-500', 'transition-colors');
+                            if (key.length > 1) {
+                                keyButton.classList.add('px-3', 'text-xs');
+                                keyButton.style.flexGrow = '1.5';
+                            } else {
+                                keyButton.classList.add('w-9');
+                            }
+                            keyButton.addEventListener('click', () => handleKeyPress(key));
+                            rowDiv.appendChild(keyButton);
+                        });
+                        keyboard.appendChild(rowDiv);
+                    });
+                }
+
+                // --- EVENT HANDLING ---
+                function setupEventListeners() {
+                    document.addEventListener('keydown', handleKeyDown);
+                    helpTab.addEventListener('click', () => {
+                        helpModal.classList.remove('hidden');
+                    });
+                    creditsTab.addEventListener('click', () => {
+                        creditsModal.classList.remove('hidden');
+                    });
+                }
+
+                function handleKeyDown(e) {
+                    if (e.key.match(/^[a-zA-Z0-9]$/)) {
+                        keySequence.push(e.key.toLowerCase());
+                        const maxLength = Math.max(ADMIN_CODE.length, HINT_CODE.length);
+                        if (keySequence.length > maxLength) {
+                            keySequence.shift();
+                        }
+
+                        const sequence = keySequence.join('');
+                        if (sequence.includes(ADMIN_CODE)) {
+                            secretWordDisplay.textContent = secretWord;
+                            adminModal.classList.remove('hidden');
+                            keySequence = [];
+                        } else if (sequence.includes(HINT_CODE)) {
+                            if (hintUsed) {
+                                showToast("Hint already used this game!");
+                            } else {
+                                hintText.textContent = generateHint(secretWord);
+                                hintModal.classList.remove('hidden');
+                                hintUsed = true;
+                            }
+                            keySequence = [];
+                        }
+                    }
+
+                    if (isGameOver) return;
+
+                    if (e.key.match(/^[a-zA-Z]$/)) {
+                        handleKeyPress(e.key.toUpperCase());
+                    } else if (e.key === 'Backspace') {
+                        handleKeyPress('BACKSPACE');
+                    } else if (e.key === 'Enter') {
+                        handleKeyPress('ENTER');
+                    }
+                }
+
+                function handleKeyPress(key) {
+                    if (isGameOver) return;
+
+                    const keyElement = document.getElementById(`key-${key}`);
+                    if(keyElement) {
+                        keyElement.classList.add('key-pop');
+                        setTimeout(() => keyElement.classList.remove('key-pop'), 100);
+                    }
+
+                    if (key === 'ENTER') {
+                        submitGuess();
+                    } else if (key === 'BACKSPACE') {
+                        deleteChar();
+                    } else if (currentTile < 5) {
+                        addChar(key);
+                    }
+                }
+
+                // --- GAME LOGIC ---
+                function addChar(char) {
+                    guesses[currentRow][currentTile] = { char, state: 'tbd' };
+                    updateGrid();
+                    currentTile++;
+                }
+
+                function deleteChar() {
+                    if (currentTile > 0) {
+                        currentTile--;
+                        guesses[currentRow][currentTile] = { char: '', state: 'empty' };
+                        updateGrid();
+                    }
+                }
+
+                function submitGuess() {
+                    if (currentTile < 5) {
+                        showToast("Not enough letters");
+                        shakeRow(currentRow);
+                        return;
+                    }
+
+                    const guessWord = guesses[currentRow].map(tile => tile.char).join('');
+
+                    if (!VALID_WORDS.includes(guessWord)) {
+                        showToast("Not in word list");
+                        shakeRow(currentRow);
+                        return;
+                    }
+
+                    evaluateGuess(guessWord);
+                }
+
+                function evaluateGuess(guessWord) {
+                    const secretWordLetters = secretWord.split('');
+                    const evaluation = Array(5).fill('absent');
+                    const letterCounts = {};
+
+                    for (const letter of secretWordLetters) {
+                        letterCounts[letter] = (letterCounts[letter] || 0) + 1;
+                    }
+
+                    for (let i = 0; i < 5; i++) {
+                        if (guessWord[i] === secretWord[i]) {
+                            evaluation[i] = 'correct';
+                            letterCounts[guessWord[i]]--;
+                        }
+                    }
+
+                    for (let i = 0; i < 5; i++) {
+                        if (evaluation[i] !== 'correct' && secretWordLetters.includes(guessWord[i]) && letterCounts[guessWord[i]] > 0) {
+                            evaluation[i] = 'present';
+                            letterCounts[guessWord[i]]--;
+                        }
+                    }
+
+                    flipAndColor(evaluation);
+                }
+
+               function getDayNumber() {
+                    const now = new Date();
+                    const diff = now - START_DATE;
+                    const oneDay = 1000 * 60 * 60 * 24;
+                    return Math.floor(diff / oneDay) + 1;
+                }
+
+                function generateShareText(didWin) {
+                    const dayNumber = getDayNumber();
+                    const score = didWin ? currentRow + 1 : 'X';
+                    let text = `York Wordle #${dayNumber} ${score}/6\n\n`;
+
+                    const emojiMap = {
+                        correct: '🟩',
+                        present: '🟨',
+                        absent: '⬛'
+                    };
+
+                    for (let i = 0; i <= currentRow; i++) {
+                        for (let j = 0; j < 5; j++) {
+                            text += emojiMap[guesses[i][j].state] || '⬛';
+                        }
+                        text += '\n';
+                    }
+                    return text.trim();
+                }
+
+                function showGameOverModal(didWin) {
+                    modalTitle.textContent = didWin ? "Congratulations!" : "Nice Try!";
+                    const shareText = generateShareText(didWin);
+
+                    if (!didWin) {
+                        shareContent.textContent = shareText + '\n\nThe word was: ' + secretWord;
+                    } else {
+                        shareContent.textContent = shareText;
+                    }
+
+                    gameOverModal.classList.remove('hidden');
+
+                    shareButton.onclick = () => {
+                        navigator.clipboard.writeText(shareText).then(() => {
+                            showToast('Results copied to clipboard!');
+                        }).catch(err => {
+                            console.error('Could not copy text: ', err);
+                            showToast('Could not copy results.');
+                        });
+                    };
+                }
+
+                function checkGameOver() {
+                    const guessWord = guesses[currentRow].map(tile => tile.char).join('');
+                    if (guessWord === secretWord) {
+                        isGameOver = true;
+                        danceRow(currentRow);
+                        setTimeout(() => showGameOverModal(true), 1500);
+                    } else if (currentRow === 5) {
+                        isGameOver = true;
+                         setTimeout(() => showGameOverModal(false), 1500);
+                    } else {
+                        currentRow++;
+                        currentTile = 0;
+                    }
+                }
+
+                // --- UI UPDATES & ANIMATIONS ---
+                function updateGrid() {
+                    for (let r = 0; r < 6; r++) {
+                        for (let c = 0; c < 5; c++) {
+                            const tile = getTileElement(r, c);
+                            updateTile(tile, guesses[r][c]);
+                        }
+                    }
+                }
+
+                function updateTile(tileElement, tileData) {
+                    const front = tileElement.querySelector('.front');
+                    const back = tileElement.querySelector('.back');
+
+                    front.textContent = tileData.char;
+                    back.textContent = tileData.char;
+
+                    front.classList.remove('border-zinc-500');
+                    back.classList.remove('bg-emerald-600', 'bg-amber-500', 'bg-zinc-700', 'border-emerald-600', 'border-amber-500', 'border-zinc-700');
+
+                    if (tileData.char) {
+                        front.classList.add('border-zinc-500');
+                    }
+
+                    const stateColors = {
+                        correct: 'bg-emerald-600 border-emerald-600',
+                        present: 'bg-amber-500 border-amber-500',
+                        absent: 'bg-zinc-700 border-zinc-700',
+                    };
+
+                    if (stateColors[tileData.state]) {
+                        back.classList.add(...stateColors[tileData.state].split(' '));
+                    }
+                }
+
+                function flipAndColor(evaluation) {
+                    const rowTiles = grid.querySelectorAll(`[data-row='${currentRow}']`);
+                    rowTiles.forEach((tile, index) => {
+                        setTimeout(() => {
+                            tile.classList.add('flip');
+                            guesses[currentRow][index].state = evaluation[index];
+                            updateTile(tile, guesses[currentRow][index]);
+                            updateKeyboardKey(guesses[currentRow][index].char, evaluation[index]);
+                        }, index * 300);
+                    });
+
+                    setTimeout(checkGameOver, 5 * 300);
+                }
+
+
+                function updateKeyboardKey(key, state) {
+                    const keyElement = document.getElementById(`key-${key}`);
+                    if (!keyElement) return;
+
+                    const currentState = keyElement.dataset.state;
+                    const statePrecedence = { correct: 2, present: 1, absent: 0 };
+
+                    if (!currentState || statePrecedence[state] > statePrecedence[currentState]) {
+                        keyElement.classList.remove('bg-zinc-600', 'bg-emerald-600', 'bg-amber-500', 'bg-zinc-800');
+                        const keyColors = {
+                            correct: 'bg-emerald-600',
+                            present: 'bg-amber-500',
+                            absent: 'bg-zinc-800'
+                        };
+                        keyElement.classList.add(keyColors[state]);
+                        keyElement.dataset.state = state;
+                    }
+                }
+
+                function getTileElement(row, col) {
+                    return grid.querySelector(`[data-row='${row}'][data-col='${col}']`);
+                }
+
+                function showToast(message, duration = 1500) {
+                    const toast = document.createElement('div');
+                    toast.textContent = message;
+                    toast.classList.add('bg-zinc-100', 'text-zinc-900', 'font-bold', 'py-3', 'px-6', 'rounded-lg', 'shadow-lg', 'animate-pulse');
+                    toastContainer.prepend(toast);
+                    setTimeout(() => {
+                        toast.style.transition = 'opacity 0.5s';
+                        toast.style.opacity = '0';
+                        setTimeout(() => toast.remove(), 500);
+                    }, duration);
+                }
+
+                function shakeRow(row) {
+                    const rowTiles = grid.querySelectorAll(`[data-row='${row}']`);
+                    rowTiles.forEach(tile => {
+                        tile.style.animation = 'shake 0.5s';
+                        tile.addEventListener('animationend', () => tile.style.animation = '', { once: true });
+                    });
+                }
+
+                function danceRow(row) {
+                    const rowTiles = grid.querySelectorAll(`[data-row='${row}']`);
+                    rowTiles.forEach((tile, index) => {
+                        setTimeout(() => {
+                            tile.style.animation = 'dance 0.5s';
+                            tile.addEventListener('animationend', () => tile.style.animation = '', { once: true });
+                        }, index * 100);
+                    });
+                }
+
+                const style = document.createElement('style');
+                style.innerHTML = `
+                    @keyframes shake {
+                        10%, 90% { transform: translateX(-2px); }
+                        20%, 80% { transform: translateX(4px); }
+                        30%, 50%, 70% { transform: translateX(-8px); }
+                        40%, 60% { transform: translateX(8px); }
+                    }
+                    @keyframes dance {
+                        0%, 100% { transform: translateY(0); }
+                        50% { transform: translateY(-15px); }
+                    }
+                `;
+                document.head.appendChild(style);
+
+                initializeGame();
+            });
+        </script>
 </body>
 </html>
