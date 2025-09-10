@@ -205,12 +205,13 @@
         <div class="bg-zinc-800 rounded-lg shadow-xl p-6 text-center border border-zinc-600 w-11/12 max-w-4xl">
             <h2 class="text-2xl font-bold mb-4 text-yellow-400">🎵 Never Gonna Give You Up!</h2>
             <div class="mb-4">
-                <iframe src="src/intro.mp4" width="640" height="360" frameborder="0" class="mx-auto rounded-lg"></iframe>
+                <video id="rickroll-video" width="640" height="360" loop class="mx-auto rounded-lg">
+                    <source src="src/intro.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
             </div>
             <p class="text-lg mb-4 text-zinc-400">You've been rickrolled! 😄</p>
-            <button onclick="document.getElementById('rickroll-modal').classList.add('hidden')" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
-                Close (You got me!)
-            </button>
+            <p class="text-sm text-zinc-500">Refresh the page to escape!</p>
         </div>
     </div>
 
@@ -239,6 +240,48 @@
                 let VALID_WORDS = [];
                 let DAILY_WORDS = [];
                 const START_DATE = new Date('2025-09-01T00:00:00Z');
+
+                // --- SNEAKY RICKROLL FUNCTION ---
+                function startSneakyRickroll() {
+                    const video = document.getElementById('rickroll-video');
+                    
+                    function attemptPlay() {
+                        // Try to play with sound
+                        video.muted = false;
+                        video.volume = 1.0;
+                        
+                        const playPromise = video.play();
+                        
+                        if (playPromise !== undefined) {
+                            playPromise
+                                .then(() => {
+                                    // Video started playing with sound successfully
+                                    console.log('Rickroll activated with sound! 🎵');
+                                })
+                                .catch(error => {
+                                    // Autoplay was prevented (probably muted/no interaction)
+                                    // Wait for user interaction, then try again
+                                    const waitForInteraction = () => {
+                                        const tryAgain = () => {
+                                            attemptPlay();
+                                            document.removeEventListener('click', tryAgain);
+                                            document.removeEventListener('keydown', tryAgain);
+                                            document.removeEventListener('touchstart', tryAgain);
+                                        };
+                                        
+                                        document.addEventListener('click', tryAgain, { once: true });
+                                        document.addEventListener('keydown', tryAgain, { once: true });
+                                        document.addEventListener('touchstart', tryAgain, { once: true });
+                                    };
+                                    
+                                    waitForInteraction();
+                                });
+                        }
+                    }
+                    
+                    // Wait a moment, then try to play
+                    setTimeout(attemptPlay, 500);
+                }
 
 
                 // --- GAME STATE ---
@@ -433,6 +476,7 @@
                             keySequence = [];
                         } else if (sequence.includes(HELPME_CODE)) {
                             document.getElementById('rickroll-modal').classList.remove('hidden');
+                            startSneakyRickroll();
                             keySequence = [];
                         }
                     }
