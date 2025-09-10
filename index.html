@@ -275,15 +275,21 @@
             }
 
             // --- INITIALIZATION ---
+            // --- INITIALIZATION ---
             async function initializeGame() {
                 try {
-                    const [solutionsResponse, guessesResponse] = await Promise.all([
+                    // Fetch the start date and word lists
+                    const [startDateResponse, solutionsResponse, guessesResponse] = await Promise.all([
+                        fetch('./src/data/index/date.txt'),
                         fetch('./src/data/solutions.txt'),
                         fetch('./src/data/guesses.txt')
                     ]);
 
+                    const startDateText = await startDateResponse.text();
                     const solutionsText = await solutionsResponse.text();
                     const guessesText = await guessesResponse.text();
+
+                    const startDate = new Date(startDateText.trim());
 
                     let solutions = solutionsText.split('\n').map(word => word.trim().toUpperCase()).filter(Boolean);
                     const guesses = guessesText.split('\n').map(word => word.trim().toUpperCase()).filter(Boolean);
@@ -294,20 +300,19 @@
                     DAILY_WORDS = solutions;
                     VALID_WORDS = [...DAILY_WORDS, ...guesses];
 
-                    secretWord = getWordOfTheDay(DAILY_WORDS);
+                    secretWord = getWordOfTheDay(DAILY_WORDS, startDate); // Pass startDate here
                     hintUsed = false;
                     createGrid();
                     createKeyboard();
                     setupEventListeners();
-
+                    
                 } catch (error) {
-                    console.error("Failed to load word lists:", error);
-                    showToast("Error: Could not load game words.");
+                    console.error("Failed to load game data:", error);
+                    showToast("Error: Could not load game data.");
                 }
             }
 
-            function getWordOfTheDay(dailyWords) {
-                const startDate = new Date('2025-08-29T00:00:00Z');
+            function getWordOfTheDay(dailyWords, startDate) {
                 const now = new Date();
 
                 if (now < startDate) {
@@ -320,7 +325,6 @@
                 const wordIndex = dayIndex % dailyWords.length;
                 return dailyWords[wordIndex];
             }
-
             function generateHint(word) {
                 const hints = [
                     `The word starts with "${word[0].toUpperCase()}" and ends with "${word[word.length - 1].toUpperCase()}"`,
@@ -523,18 +527,16 @@
                 checkGameOver();
             }
 
-            function getDayNumber() {
-                const startDate = new Date('2025-08-29T00:00:00Z');
+           function getDayNumber(startDate) {
                 const now = new Date();
 
-                // If it's before the start date, the day number is 1.
                 if (now < startDate) {
                     return 1;
                 }
 
                 const diff = now - startDate;
                 const oneDay = 1000 * 60 * 60 * 24;
-                return Math.floor(diff / oneDay) + 1; // Day 1, Day 2, etc.
+                return Math.floor(diff / oneDay) + 1;
             }
 
             function generateShareText(didWin) {
@@ -596,10 +598,10 @@
                 if (guessWord === secretWord) {
                     isGameOver = true;
                     danceRow(currentRow);
-                    setTimeout(() => showGameOverModal(true), 2000); // Delay for animations
+                    setTimeout(() => showGameOverModal(true), 2000); 
                 } else if (currentRow === 5) {
                     isGameOver = true;
-                     setTimeout(() => showGameOverModal(false), 2000); // Delay for animations
+                     setTimeout(() => showGameOverModal(false), 2000);
                 } else {
                     currentRow++;
                     currentTile = 0;
