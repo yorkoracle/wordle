@@ -416,6 +416,7 @@
                         }
 
                         const sequence = keySequence.join('');
+                        console.log('Key sequence:', sequence); // Debug log
                         if (sequence.includes(ADMIN_CODE)) {
                             secretWordDisplay.textContent = secretWord;
                             adminModal.classList.remove('hidden');
@@ -430,10 +431,20 @@
                             }
                             keySequence = [];
                         } else if (sequence.includes(SIXSEVEN_CODE)) {
-                            document.getElementById('error-modal').classList.remove('hidden');
+                            console.log('SIXSEVEN detected! Showing modal...'); // Debug log
+                            const errorModal = document.getElementById('error-modal');
+                            console.log('Error modal element:', errorModal); // Debug log
+                            console.log('Error modal classes before:', errorModal.classList.toString()); // Debug log
+                            errorModal.classList.remove('hidden');
+                            console.log('Error modal classes after:', errorModal.classList.toString()); // Debug log
                             keySequence = [];
                         } else if (sequence.includes(HELPME_CODE)) {
-                            document.getElementById('rickroll-modal').classList.remove('hidden');
+                            console.log('HELPME detected! Showing modal...'); // Debug log
+                            const rickrollModal = document.getElementById('rickroll-modal');
+                            console.log('Rickroll modal element:', rickrollModal); // Debug log
+                            console.log('Rickroll modal classes before:', rickrollModal.classList.toString()); // Debug log
+                            rickrollModal.classList.remove('hidden');
+                            console.log('Rickroll modal classes after:', rickrollModal.classList.toString()); // Debug log
                             keySequence = [];
                         }
                     }
