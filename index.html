@@ -340,6 +340,40 @@
 
                 return array;
             }
+            
+            // --- LOCAL STORAGE FUNCTIONS ---
+            function saveGameState() {
+                const gameState = {
+                    guesses,
+                    currentRow,
+                    currentTile,
+                    isGameOver,
+                    secretWord,
+                    date: getTodaysSeed()
+                };
+                localStorage.setItem('gameState', JSON.stringify(gameState));
+            }
+
+            function loadGameState() {
+                const savedState = localStorage.getItem('gameState');
+                if (savedState) {
+                    const gameState = JSON.parse(savedState);
+                    if (gameState.date === getTodaysSeed()) {
+                        guesses = gameState.guesses;
+                        currentRow = gameState.currentRow;
+                        currentTile = gameState.currentTile;
+                        isGameOver = gameState.isGameOver;
+                        secretWord = gameState.secretWord;
+                        updateGrid();
+                        guesses.forEach((row, rowIndex) => {
+                            if (rowIndex < currentRow) {
+                                const guessWord = row.map(tile => tile.char).join('');
+                                evaluateGuess(guessWord, true);
+                            }
+                        });
+                    }
+                }
+            }
 
             // --- INITIALIZATION ---
             async function initializeGame() {
@@ -370,6 +404,7 @@
                     createGrid();
                     createKeyboard();
                     setupEventListeners();
+                    loadGameState(); // Load game state after initialization
 
                 } catch (error) {
                     console.error("Failed to load game data:", error);
@@ -539,10 +574,11 @@
                     return;
                 }
 
-                evaluateGuess(guessWord);
+                evaluateGuess(guessWord, false);
+                saveGameState();
             }
 
-            function evaluateGuess(guessWord) {
+            function evaluateGuess(guessWord, isRestore = false) {
                 const secretWordLetters = secretWord.split('');
                 const evaluation = Array(5).fill('absent');
                 const letterCounts = {};
@@ -565,7 +601,16 @@
                     }
                 }
 
-                flipAndColor(evaluation);
+                if (!isRestore) {
+                    flipAndColor(evaluation);
+                } else {
+                    const rowTiles = grid.querySelectorAll(`[data-row='${currentRow}']`);
+                    rowTiles.forEach((tile, index) => {
+                        guesses[currentRow][index].state = evaluation[index];
+                        updateTile(tile, guesses[currentRow][index]);
+                        updateKeyboardKey(guesses[currentRow][index].char, evaluation[index]);
+                    });
+                }
             }
 
            function getDayNumber() {
@@ -630,6 +675,7 @@
                     currentRow++;
                     currentTile = 0;
                 }
+                saveGameState();
             }
 
             // --- UI UPDATES & ANIMATIONS ---
