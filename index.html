@@ -340,6 +340,52 @@
 
                 return array;
             }
+            
+            // --- LOCAL STORAGE FUNCTIONS ---
+            function saveGameState() {
+                const gameState = {
+                    guesses,
+                    currentRow,
+                    currentTile,
+                    isGameOver,
+                    secretWord,
+                    date: getTodaysSeed()
+                };
+                localStorage.setItem('gameState', JSON.stringify(gameState));
+            }
+
+            function loadGameState() {
+                const savedState = localStorage.getItem('gameState');
+                if (!savedState) return;
+
+                const gameState = JSON.parse(savedState);
+                if (gameState.date === getTodaysSeed()) {
+                    guesses = gameState.guesses;
+                    currentRow = gameState.currentRow;
+                    currentTile = gameState.currentTile;
+                    isGameOver = gameState.isGameOver;
+                    secretWord = gameState.secretWord;
+
+                    updateGrid();
+
+                    for (let r = 0; r < 6; r++) {
+                        for (let c = 0; c < 5; c++) {
+                            const tile = guesses[r][c];
+                            if (tile.state !== 'empty' && tile.state !== 'tbd') {
+                                const tileEl = getTileElement(r, c);
+                                tileEl.classList.add('flip');
+                                updateKeyboardKey(tile.char, tile.state);
+                            }
+                        }
+                    }
+
+                    if (isGameOver) {
+                        const lastGuess = guesses[currentRow] || guesses[5];
+                        const didWin = lastGuess.every(tile => tile.state === 'correct');
+                        setTimeout(() => showGameOverModal(didWin), 500);
+                    }
+                }
+            }
 
             // --- INITIALIZATION ---
             async function initializeGame() {
@@ -364,12 +410,19 @@
 
                     DAILY_WORDS = solutions;
                     VALID_WORDS = [...new Set([...DAILY_WORDS, ...guessesList])];
+                    
+                    const playedWords = JSON.parse(localStorage.getItem('playedWords')) || [];
+                    secretWord = DAILY_WORDS.find(word => !playedWords.includes(word)) || DAILY_WORDS[0];
+                    if (!DAILY_WORDS.find(word => !playedWords.includes(word))) {
+                        localStorage.setItem('playedWords', JSON.stringify([]));
+                    }
 
-                    secretWord = DAILY_WORDS[0]; // The first word of the shuffled list is the word of the day
+
                     hintUsed = false;
                     createGrid();
                     createKeyboard();
                     setupEventListeners();
+                    loadGameState(); // Load game state after initialization
 
                 } catch (error) {
                     console.error("Failed to load game data:", error);
@@ -539,10 +592,10 @@
                     return;
                 }
 
-                evaluateGuess(guessWord);
+                evaluateAndFlip(guessWord);
             }
 
-            function evaluateGuess(guessWord) {
+            function evaluateAndFlip(guessWord) {
                 const secretWordLetters = secretWord.split('');
                 const evaluation = Array(5).fill('absent');
                 const letterCounts = {};
@@ -564,9 +617,9 @@
                         letterCounts[guessWord[i]]--;
                     }
                 }
-
                 flipAndColor(evaluation);
             }
+
 
            function getDayNumber() {
                 const now = new Date();
@@ -596,6 +649,12 @@
             }
 
             function showGameOverModal(didWin) {
+                const playedWords = JSON.parse(localStorage.getItem('playedWords')) || [];
+                if (!playedWords.includes(secretWord)) {
+                    playedWords.push(secretWord);
+                    localStorage.setItem('playedWords', JSON.stringify(playedWords));
+                }
+
                 modalTitle.textContent = didWin ? "Congratulations!" : "Nice Try!";
                 const shareText = generateShareText(didWin);
 
@@ -630,6 +689,7 @@
                     currentRow++;
                     currentTile = 0;
                 }
+                saveGameState();
             }
 
             // --- UI UPDATES & ANIMATIONS ---
