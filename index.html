@@ -249,14 +249,147 @@
         </button>
     </div>
 </div>
+<script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
 
         <script type="module">
             import { ADMIN_CODE, HINT_CODE, SIXSEVEN_CODE, HELPME_CODE } from './src/data/index/info/config.js';
 
             document.addEventListener('DOMContentLoaded', () => {
-                // --- LOADING SCREEN LOGIC ---
-                const loadingScreen = document.getElementById('loading-screen');
-                const startButton = document.getElementById('start-button');
+
+    // --- PASTE THIS ENTIRE BLOCK AT THE TOP ---
+
+    // 1. FIREBASE SETUP
+     const firebaseConfig = {
+    apiKey: "AIzaSyCUL2cNWIJGsckSpsNSgI5mlQtzklDlaYA",
+    authDomain: "yorkwordle.firebaseapp.com",
+    projectId: "yorkwordle",
+    storageBucket: "yorkwordle.firebasestorage.app",
+    messagingSenderId: "360192700726",
+    appId: "1:360192700726:web:ed6c189c0f9d227c298397",
+    measurementId: "G-WBWH7JVFQN"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+
+
+    // 2. GET DOM ELEMENTS
+    const usernameModal = document.getElementById('username-modal');
+    const usernameInput = document.getElementById('username-input');
+    const saveUsernameButton = document.getElementById('save-username-button');
+    const welcomeMessage = document.getElementById('welcome-message');
+    const leaderboardModal = document.getElementById('leaderboard-modal');
+    const leaderboardButton = document.getElementById('leaderboard-button');
+    const leaderboardContent = document.getElementById('leaderboard-content');
+
+    // 3. HELPER FUNCTION TO GET TODAY'S DATE
+    function getTodayDateString() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    // 4. LEADERBOARD AND USERNAME FUNCTIONS
+    async function submitScore(username, attempts) {
+        if (!username) return;
+        const today = getTodayDateString();
+        try {
+            // This path matches our security rules: /leaderboards/{date}/scores/{scoreId}
+            await db.collection('leaderboards').doc(today).collection('scores').add({
+                username: username,
+                score: attempts,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log("Score submitted!");
+        } catch (error) {
+            console.error("Error submitting score: ", error);
+        }
+    }
+
+    async function displayLeaderboard() {
+        leaderboardModal.classList.remove('hidden');
+        leaderboardContent.innerHTML = '<p class="text-zinc-400 text-center">Loading scores...</p>';
+        const today = getTodayDateString();
+
+        try {
+            const snapshot = await db.collection('leaderboards').doc(today).collection('scores')
+                .orderBy('score')
+                .orderBy('timestamp', 'desc')
+                .limit(20)
+                .get();
+
+            if (snapshot.empty) {
+                leaderboardContent.innerHTML = '<p class="text-zinc-400 text-center">No scores yet today. Be the first!</p>';
+                return;
+            }
+
+            let html = '<ol class="list-decimal list-inside space-y-1">';
+            snapshot.forEach((doc, index) => {
+                const data = doc.data();
+                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+                html += `<li class="p-1 rounded ${index < 3 ? 'bg-zinc-700' : ''}">${medal} ${data.username} - <strong>${data.score} guesses</strong></li>`;
+            });
+            html += '</ol>';
+            leaderboardContent.innerHTML = html;
+        } catch (error) {
+            console.error("Error fetching leaderboard: ", error);
+            leaderboardContent.innerHTML = '<p class="text-red-500 text-center">Could not load scores.</p>';
+        }
+    }
+
+    function checkUser() {
+        const username = localStorage.getItem('wordleUsername');
+        if (username) {
+            usernameModal.classList.add('hidden');
+            welcomeMessage.textContent = `Welcome, ${username}!`;
+        } else {
+            usernameModal.classList.remove('hidden');
+        }
+    }
+
+    saveUsernameButton.addEventListener('click', () => {
+        const username = usernameInput.value.trim();
+        if (username) {
+            localStorage.setItem('wordleUsername', username);
+            checkUser();
+        } else {
+            showToast("Please enter a username.");
+        }
+    });
+
+    leaderboardButton.addEventListener('click', displayLeaderboard);
+
+    // --- END OF THE BLOCK TO PASTE ---
+
+    // Now, find your existing `showGameOverModal` function and modify it
+    // to submit the score when a player wins.
+    function showGameOverModal(didWin) {
+        modalTitle.textContent = didWin ? "Congratulations!" : "Nice Try!";
+        const shareText = generateShareText(didWin);
+
+        if (didWin) {
+            const username = localStorage.getItem('wordleUsername');
+            const score = currentRow + 1;
+            submitScore(username, score); // <<< THIS IS THE NEW LINE
+        }
+
+        // ... rest of the function is the same
+    }
+
+    // Finally, find the `initializeGame` function and add a call to `checkUser()` at the end.
+    async function initializeGame() {
+        // ... (all existing code inside this function)
+        createGrid();
+        createKeyboard();
+        setupEventListeners();
+        checkUser(); // <<< THIS IS THE NEW LINE
+    }
+
+});
 
                 setTimeout(() => {
                     startButton.classList.remove('hidden');
