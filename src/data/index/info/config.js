@@ -14,11 +14,11 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXsdkgfjhjlkdfhgl
 
 // Admin configuration
 export const ADMIN_CODE = 'veerbajajisadmin';
-export const HINT_CODE = 'falcons';
+export const HINT_CODE = 'helpme';
 
 // Meme codes
 export const SIXSEVEN_CODE = 'sixseven';
-export const HELPME_CODE = 'helpme';
+export const HELPME_CODE = 'falcons';
 
 // More filler after
 const FILLER_END = `
