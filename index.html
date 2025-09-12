@@ -398,8 +398,15 @@
 
                     DAILY_WORDS = solutions;
                     VALID_WORDS = [...new Set([...DAILY_WORDS, ...guessesList])];
+                    
+                    const playedWords = JSON.parse(localStorage.getItem('playedWords')) || [];
+                    secretWord = DAILY_WORDS.find(word => !playedWords.includes(word));
+                    if (!secretWord) {
+                        // All words played, reset history
+                        localStorage.removeItem('playedWords');
+                        secretWord = DAILY_WORDS[0];
+                    }
 
-                    secretWord = DAILY_WORDS[0]; // The first word of the shuffled list is the word of the day
                     hintUsed = false;
                     createGrid();
                     createKeyboard();
@@ -641,6 +648,10 @@
             }
 
             function showGameOverModal(didWin) {
+                const playedWords = JSON.parse(localStorage.getItem('playedWords')) || [];
+                playedWords.push(secretWord);
+                localStorage.setItem('playedWords', JSON.stringify(playedWords));
+
                 modalTitle.textContent = didWin ? "Congratulations!" : "Nice Try!";
                 const shareText = generateShareText(didWin);
 
